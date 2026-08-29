@@ -1,0 +1,7 @@
+# normaliza fim de linha: LF no repo (roda em Linux na nuvem)
+* text=auto eol=lf
+*.svg text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.jsonl text eol=lf
