@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ai-venture-factory",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/server.js", "8080"],
+      "port": 8080
+    }
+  ]
+}

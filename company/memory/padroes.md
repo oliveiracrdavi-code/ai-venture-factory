@@ -1,0 +1,112 @@
+# Padrões da empresa — como o trabalho é feito
+
+Convenções fixas para todos os agentes. Complementa `principios.md`.
+
+## Estado e arquivos
+
+- **1 writer por arquivo.** Cada agente escreve apenas nos artefatos do seu
+  bloco. Conflito de escrita = erro de processo.
+- **Código do app-001:** cada dev do BLOCO 4 trabalha em branch/worktree
+  próprio; **A17 tech-lead é o único que faz merge**.
+- Nada de estado só em contexto. Persistir em `company/`.
+- Artefato do projeto vive em `company/projects/app-XXX/`.
+
+## TASK (`company/tasks/TASK-XXXX.md`)
+
+Frontmatter obrigatório: `id, agent, status, priority, gate, input, output,
+acceptance`. `status ∈ {queued, running, blocked, review, done, rejected}`.
+Template em `company/templates/TASK.md`.
+
+## Fila / orquestrador
+
+- `node scripts/orchestrator.js tick` avança **um passo** e imprime o diff.
+  `tick` é o padrão; `--watch` só sob pedido explícito do humano.
+- Máx. **5** TASKs `running` simultâneas.
+- Ordem: `priority` (desc) → `id` (asc).
+- Instrução do humano pelo chat do dashboard vira TASK nova com
+  `priority: high`.
+
+## Gates (ordem obrigatória)
+
+| Gate | Libera quando |
+|---|---|
+| G0 intake | `idea.md` existe, é legal, custo ≈ 0 → cria TASKs de G1 |
+| G1 pesquisa | `brief.md` com dor + público + concorrência/demanda |
+| G2 viabilidade | `score.md` com total calculado (A05 + A06 + A10) |
+| G3 CEO | `decisions/ceo-*.md` = APROVADO (>=85, zero risco crítico) |
+| G4 blueprint | `blueprint.md` completo (PRD + API + arquitetura + telas) |
+| G5 conectores | checklist de privilégios aprovado pelo humano |
+| G6 engenharia | build ok + testes básicos + zero secret no código |
+| G7 segurança | zero falha crítica após ciclo red→blue→reteste |
+| G8 QA | `qa-report.md` = release-ready (fluxo, auth, pagamento simulado) |
+| G9 marketing | 1 semana de conteúdo gerada + pacotes em `outbox/` |
+| G10 monitor | `metrics.json` inicializado + primeiro `daily-report.md` |
+
+Reprovou num gate → TASK nova para o bloco anterior com anotações;
+`company/state/pipeline.json` marca `❌` naquele gate.
+
+## Logs
+
+- **`company/logs/events.jsonl`** — uma linha JSON por ação:
+  `{ts, agent, task, type, tool, summary, model, effort}`.
+  `model` e `effort` são **obrigatórios** (auditoria de consumo do plano).
+  `type` inclui, entre outros: `bootstrap`, `task-start`, `task-done`,
+  `gate-pass`, `gate-fail`, `chat`, `part-report`.
+- **`company/logs/chats/<agente>.jsonl`** — `{ts, from, to, content, task_ref}`.
+- **Relatório de parte** = evento `type: "part-report"` em `events.jsonl`,
+  com `summary` = o que foi criado/testado. É o marcador para retomar a
+  sessão na parte certa.
+- **Mascaramento de secret (logger + hook), antes de gravar:**
+  `sk-[A-Za-z0-9]{16,}`, `ghp_[A-Za-z0-9]{20,}`, `AKIA[0-9A-Z]{12,}`,
+  `Bearer\s+\S+`, qualquer linha vinda de arquivo `.env`. Substituir por
+  `«MASKED»`. Nunca logar valor de credencial.
+
+## Código (BLOCO 4)
+
+Todo código entregue vem com: **teste mínimo + doc curta + changelog**.
+Sem isso, A17 não faz merge. `app-001`: HTML/JS + servidor Node local;
+SQLite só se necessário. **Auth e paywall SIMULADOS** até o humano aprovar
+gateway real — regra permanente.
+
+## Marketing (BLOCO 8)
+
+- `channels.json`: todo canal nasce `method: "manual"`, `enabled: false`,
+  `daily_limit: 3`, `credentials_ref` = nome lógico (nunca o valor).
+- Ciclo diário: A43 ângulo → A45 landing/SEO → A44 pacote em `drafts/` →
+  A46 varia p/ A/B → publicador (`manual` → `outbox/` + "AGUARDANDO CLIQUE
+  HUMANO"; `api` → posta via A28 c/ credencial injetada por A30, grava
+  `posts.jsonl`).
+- **O ciclo termina com A49** capturando métricas dos posts: números reais
+  da API quando `method=api`; estimativa manual registrada quando
+  `method=manual`. Grava em `posts.jsonl` e alimenta o próximo ciclo de
+  A43 e A46.
+- 1º post de cada canal novo = aprovação humana. Proibido spam, compra de
+  seguidores, review falso, promessa irreal. Respeitar termos e rate limits.
+  Toda publicação gera log imutável.
+
+## Permissões
+
+5 níveis N1–N5 descritos em `company/org/permissoes.md`. **Cada** arquivo
+`.md` de agente declara seu nível no cabeçalho (campo `Nível`).
+
+## Modelo / effort / skills por agente (ANEXO B)
+
+`company/spec-anexo-b.md` define, para os 49 agentes: modelo (8 Opus · 38
+Sonnet · 3 Haiku), effort, fallback Pro (Sonnet+high quando não há folga de
+Opus) e **STACK DE SKILLS REAIS** (10 por agente, `[I]` já instalada / `[+]`
+instalar). Cada `.md` de agente carrega as seções `MODELO & EFFORT` e
+`STACK DE SKILLS` verbatim do Anexo B.
+
+- Opus só é acionado no gate do próprio agente (A07 nas partes 6/reavaliação;
+  A13/A14 nas partes 4/7; A16 na 7; A31/A32 na 10; A44 na 12). Fora disso,
+  fallback.
+- Marketplaces a registrar 1× (custo zero): `obra/superpowers-marketplace`,
+  `coreyhaines31/marketingskills`, `alirezarezvani/claude-skills`,
+  `npx skills add anthropics/skills`. Skills que exigem CLI de terceiro
+  (Ahrefs, GA4, Meta/Google Ads) NÃO rodam no piloto — marketing para no
+  `outbox/`.
+
+## Dashboard — card do agente (PARTE 4)
+
+O card de cada um dos 49 agentes exibe: **modelo · effort · nível de
+permissão (N1–N5)** + status + TASK atual + última ação + skill em uso.

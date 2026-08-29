@@ -1,0 +1,19 @@
+{
+  "name": "ai-venture-factory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Startup simulada de 49 agentes de IA (pesquisa -> build -> seguranca -> QA -> marketing -> monetizacao). 100% local, zero dependencia, zero custo.",
+  "type": "commonjs",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "activate": "node scripts/activate.js",
+    "serve": "node scripts/server.js 8080",
+    "tick": "node scripts/orchestrator.js tick",
+    "watch": "node scripts/orchestrator.js --watch",
+    "snapshot": "node scripts/snapshot.js",
+    "sprites": "node scripts/gen-sprites.js",
+    "seed": "node scripts/seed-tasks.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

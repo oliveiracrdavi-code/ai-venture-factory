@@ -1,0 +1,98 @@
+/* AI Venture Factory - dashboard. CSS puro, sem build. */
+:root{
+  --bg:#12141a; --panel:#1a1d26; --panel2:#222633; --line:#2e3444;
+  --ink:#e7e3dc; --muted:#9aa2b1; --accent:#C96F4A; --accent2:#E08E68;
+  --ok:#4C9A5B; --warn:#E6B422; --bad:#C7443B; --info:#3E7CB1;
+  --mono:ui-monospace,SFMono-Regular,"Cascadia Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--mono);}
+a{color:var(--accent2);text-decoration:none}
+img{image-rendering:pixelated;image-rendering:crisp-edges}
+.muted{color:var(--muted)}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+
+.topbar{display:flex;align-items:center;gap:20px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:1px;color:var(--accent2)}
+.brand-sprite{image-rendering:pixelated}
+.tabs{display:flex;gap:4px;flex:1;flex-wrap:wrap}
+.tabs a{padding:6px 12px;border:1px solid var(--line);border-radius:4px;color:var(--muted)}
+.tabs a.active{background:var(--accent);color:#1a1206;border-color:var(--accent);font-weight:700}
+.status{color:var(--ok);font-size:20px;transition:color .3s}
+.status.stale{color:var(--bad)}
+
+main{padding:16px;max-width:1200px;margin:0 auto}
+.footbar{display:flex;justify-content:space-between;gap:12px;padding:8px 16px;border-top:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:12px;flex-wrap:wrap}
+
+h2{margin:6px 0 12px;font-size:15px;letter-spacing:1px;color:var(--accent2);text-transform:uppercase}
+h3{margin:18px 0 8px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:16px}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.row>*{flex:1;min-width:260px}
+
+/* metrics tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.tile{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px}
+.tile .k{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.tile .v{font-size:20px;font-weight:700;color:var(--ink)}
+
+/* pipeline */
+.pipe{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.gate{display:flex;flex-direction:column;align-items:center;min-width:44px;background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:4px 2px}
+.gate .g{font-size:10px;color:var(--muted)}
+.gate .s{font-size:16px}
+.proj-name{font-weight:700;color:var(--accent2);margin:8px 0 4px}
+
+/* agent grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.card .head{display:flex;gap:8px;align-items:center}
+.card .head img{width:44px;height:44px;border-radius:4px;border:1px solid var(--line)}
+.card .id{font-weight:700;color:var(--accent2)}
+.card .slug{font-size:12px}
+.card .bloco{font-size:10px;color:var(--muted)}
+.card .meta{font-size:11px;color:var(--muted)}
+.card .last{font-size:11px;color:var(--ink);opacity:.85;min-height:2.6em;overflow:hidden}
+.card .btns{display:flex;gap:6px;margin-top:auto}
+.card .btns button{flex:1;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:5px;cursor:pointer;font:11px var(--mono)}
+.card .btns button:hover{border-color:var(--accent)}
+
+.badge{display:inline-block;padding:1px 6px;border-radius:10px;font-size:10px;border:1px solid var(--line);text-transform:uppercase;letter-spacing:.5px}
+.b-idle{color:var(--muted)}
+.b-trabalhando{color:#1a1206;background:var(--ok);border-color:var(--ok)}
+.b-bloqueado{color:#1a1206;background:var(--bad);border-color:var(--bad)}
+.b-aguardando-humano{color:#1a1206;background:var(--warn);border-color:var(--warn)}
+.b-na-fila{color:var(--info);border-color:var(--info)}
+
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.filters select,.filters input{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:5px;font:12px var(--mono)}
+
+/* tables / events */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:1px}
+td.mono,.ev-sum{white-space:pre-wrap;word-break:break-word}
+.tag{font-size:10px;padding:0 5px;border:1px solid var(--line);border-radius:3px;color:var(--muted)}
+
+/* chat */
+.chat-log{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow:auto;padding:8px;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+.msg{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:6px 9px}
+.msg .m-head{font-size:11px;color:var(--muted)}
+.msg .m-body{white-space:pre-wrap}
+.composer{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.composer textarea{width:100%;min-height:80px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:8px;font:13px var(--mono)}
+.composer .send{align-self:flex-end;background:var(--accent);color:#1a1206;border:0;border-radius:6px;padding:8px 18px;font-weight:700;cursor:pointer}
+.composer .send:disabled{opacity:.5;cursor:wait}
+.notice{font-size:12px;color:var(--warn)}
+
+.back{display:inline-block;margin-bottom:10px;color:var(--muted)}
+.mini-sprite{width:56px;height:56px;border:1px solid var(--line);border-radius:6px;image-rendering:pixelated}
+
+.spark{width:100%;height:80px;display:block;background:var(--panel2);border:1px solid var(--line);border-radius:6px}
+.sev{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sev .s{text-align:center;padding:12px;border-radius:6px;border:1px solid var(--line);background:var(--panel2)}
+.sev .s .n{font-size:22px;font-weight:700}
+.sev .critica .n{color:var(--bad)} .sev .alta .n{color:var(--warn)}
+.sev .media .n{color:var(--info)} .sev .baixa .n{color:var(--muted)}
+.empty{color:var(--muted);padding:12px;text-align:center}

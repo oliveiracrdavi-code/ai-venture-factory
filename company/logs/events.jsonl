@@ -1,0 +1,3 @@
+{"ts":"2026-08-29T00:00:00Z","agent":"founder","task":"BOOTSTRAP","type":"bootstrap","tool":null,"summary":"AI Venture Factory - repositorio inicial (spec, 49 agentes, scripts, dashboard, 49 sprites).","model":"claude-sonnet-5","effort":"high"}
+{"ts":"2026-08-29T23:15:53.106Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (0 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
+{"ts":"2026-08-29T23:15:53.117Z","agent":"activate","task":null,"type":"activate","tool":"activate.js","summary":"fabrica ativada: 49 agentes, 0 projeto(s), sprites ok","model":"claude-sonnet-5","effort":"medium"}
