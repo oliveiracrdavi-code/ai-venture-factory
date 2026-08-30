@@ -3,6 +3,7 @@
 .env.*
 *.pem
 *.key
+company/secrets/
 
 # node
 node_modules/

@@ -186,6 +186,18 @@ function main() {
   if (!L.readJSON(path.join(L.P.stateDir, 'approvals.json'), null))
     L.writeJSON(path.join(L.P.stateDir, 'approvals.json'), { pending: [], history: [] });
 
+  // company-power.json -> por padrao a empresa comeca LIGADA
+  if (!L.readJSON(path.join(L.P.stateDir, 'company-power.json'), null))
+    L.writeJSON(path.join(L.P.stateDir, 'company-power.json'), { on: true, ts: new Date().toISOString(), by: 'default' });
+
+  // workflow-layout.json -> posicoes livres dos nos (arraste) + estado do botao Conectar
+  if (!L.readJSON(path.join(L.P.stateDir, 'workflow-layout.json'), null))
+    L.writeJSON(path.join(L.P.stateDir, 'workflow-layout.json'), { positions: {}, connected: false, ts: new Date().toISOString() });
+
+  // credential-requests.json -> pedidos de API/credencial feitos pelos agentes
+  if (!L.readJSON(path.join(L.P.stateDir, 'credential-requests.json'), null))
+    L.writeJSON(path.join(L.P.stateDir, 'credential-requests.json'), { pending: [], filled: [] });
+
   // announcements.json: consolida company/announcements/*.md
   var annDir = path.join(L.ROOT, 'company', 'announcements');
   var items = [];

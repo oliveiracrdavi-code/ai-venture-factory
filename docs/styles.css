@@ -272,3 +272,16 @@ img{image-rendering:pixelated}
 .intcard h4{margin:0 0 4px;font-size:var(--text-base)}
 .intcard .st{font-size:var(--text-xs);text-transform:uppercase;letter-spacing:.8px}
 .st.on{color:var(--ok)} .st.off{color:var(--text-3)} .st.stub{color:var(--info)}
+
+/* ---------- drag de nos + botao Conectar + liga/desliga empresa ---------- */
+.n8-node{cursor:grab}
+#wf-svg.dragging{cursor:grabbing}
+.n8-node:active{cursor:grabbing}
+.n8-ctl button#wf-connect{width:auto;padding:0 10px;font-size:var(--text-xs);white-space:nowrap;gap:6px}
+.n8-ctl button#wf-connect.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-exec.btn-off{background:var(--err)}
+#btn-power{transition:background var(--t)}
+
+/* ---------- conexoes (pedidos de credencial) ---------- */
+.cred-card{border-color:var(--border)}
+.cred-input:focus{outline:none;border-color:var(--border-focus)}

@@ -1,4 +1,12 @@
 {
-  "pending": [],
+  "pending": [
+    {
+      "id": "OPP-0001",
+      "agent": "A07",
+      "task": "OPP-0001",
+      "request": "[Oportunidade — A03] App de agenda para tatuadores autonomos — o CEO validou e recomenda aprovar a construção deste app/solução. Ver company/opportunities/OPP-0001.md para o detalhe completo.",
+      "ts": "2026-08-30T23:21:00.543Z"
+    }
+  ],
   "history": []
 }

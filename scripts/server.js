@@ -128,6 +128,10 @@ function apiTick(res) {
 var HUMAN_CHAT = path.join(L.P.logsDir, 'human-chat.jsonl');
 var ANN_DIR = path.join(ROOT, 'company', 'announcements');
 var APPROVALS = path.join(L.P.stateDir, 'approvals.json');
+var COMPANY_POWER = path.join(L.P.stateDir, 'company-power.json');
+var WORKFLOW_LAYOUT = path.join(L.P.stateDir, 'workflow-layout.json');
+var CRED_REQUESTS = path.join(L.P.stateDir, 'credential-requests.json');
+var SECRETS_DIR = path.join(ROOT, 'company', 'secrets');
 
 function appendHumanChat(msg) {
   try {
@@ -263,6 +267,73 @@ function apiWaitlist(body, res) {
   sendJson(res, 200, { ok: true });
 }
 
+// POST /api/company-power  { on: bool }  -- liga/desliga a empresa (mestre).
+// orchestrator.js le este arquivo no inicio do tick e nao ativa nada se off.
+function apiCompanyPower(body, res) {
+  var data = {};
+  try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
+  var on = !!data.on;
+  L.writeJSON(COMPANY_POWER, { on: on, ts: new Date().toISOString(), by: 'founder' });
+  L.appendEvent({ agent: 'founder', task: null, type: 'company-power', tool: 'dashboard',
+    summary: on ? 'Empresa LIGADA pelo fundador' : 'Empresa DESLIGADA pelo fundador', model: 'human', effort: 'n/a' });
+  sendJson(res, 200, { ok: true, on: on });
+}
+
+// POST /api/workflow-layout  { positions: {A01:{x,y},...}, connected: bool }
+// posicoes livres dos nos no canvas (arraste) + estado do botao "Conectar".
+function apiWorkflowLayout(body, res) {
+  var data = {};
+  try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
+  var positions = (data.positions && typeof data.positions === 'object') ? data.positions : {};
+  var clean = {};
+  Object.keys(positions).forEach(function (id) {
+    if (!/^[A-Z0-9]{2,8}$/.test(id)) return;
+    var p = positions[id];
+    if (p && isFinite(p.x) && isFinite(p.y)) clean[id] = { x: Math.round(p.x), y: Math.round(p.y) };
+  });
+  L.writeJSON(WORKFLOW_LAYOUT, { positions: clean, connected: !!data.connected, ts: new Date().toISOString() });
+  sendJson(res, 200, { ok: true });
+}
+
+// POST /api/credential-request/fill  { id, value }
+// O FUNDADOR preenche uma chave pedida por um agente. O valor bruto NUNCA e
+// logado nem devolvido na resposta -- so um preview mascarado. Grava em
+// company/secrets/<NOME>.env (fora do git, ver .gitignore).
+function apiCredentialFill(body, res) {
+  var data = {};
+  try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
+  var id = String(data.id || '').slice(0, 64);
+  var value = String(data.value || '');
+  if (!id || !value) return sendJson(res, 400, { error: 'id/valor vazio' });
+
+  var st = L.readJSON(CRED_REQUESTS, { pending: [], filled: [] });
+  if (!st.pending) st.pending = [];
+  if (!st.filled) st.filled = [];
+  var item = null;
+  st.pending = st.pending.filter(function (r) { if (r.id === id) { item = r; return false; } return true; });
+  if (!item) return sendJson(res, 404, { error: 'pedido nao encontrado (ja preenchido ou inexistente)' });
+
+  try { fs.mkdirSync(SECRETS_DIR, { recursive: true }); } catch (_) {}
+  var envKey = (item.env_key || item.api_name || id).toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+  var envFile = path.join(SECRETS_DIR, envKey + '.env');
+  try { fs.writeFileSync(envFile, envKey + '=' + value + '\n', { mode: 0o600 }); }
+  catch (e) { return sendJson(res, 500, { error: 'falha ao gravar credencial' }); }
+
+  var preview = value.length > 4 ? ('****' + value.slice(-4)) : '****';
+  var filledItem = { id: id, agent: item.agent, api_name: item.api_name, env_key: envKey,
+    env_file: 'company/secrets/' + envKey + '.env', preview: preview, ts: new Date().toISOString() };
+  st.filled.push(filledItem);
+  L.writeJSON(CRED_REQUESTS, st);
+
+  L.appendEvent({ agent: item.agent, task: item.task || null, type: 'credential-filled', tool: 'dashboard',
+    summary: 'Fundador preencheu ' + item.api_name + ' (' + preview + ') -> ' + envKey + '.env', model: 'human', effort: 'n/a' });
+  try {
+    var taskId = writeTask(item.agent, 'Credencial "' + item.api_name + '" foi preenchida pelo fundador. Disponivel (masked) em company/secrets/' + envKey + '.env. Prossiga com a tarefa que dependia dela.', 'credencial recebida');
+    filledItem.followup_task = taskId;
+  } catch (_) {}
+  sendJson(res, 200, { ok: true });
+}
+
 var server = http.createServer(function (req, res) {
   var urlPath;
   try { urlPath = decodeURIComponent((req.url || '/').split('?')[0].split('#')[0]); }
@@ -273,7 +344,7 @@ var server = http.createServer(function (req, res) {
   }
 
   if (req.method === 'POST') {
-    var POST_ROUTES = ['/api/task', '/api/tick', '/api/human-message', '/api/approve', '/api/agent-action', '/api/waitlist'];
+    var POST_ROUTES = ['/api/task', '/api/tick', '/api/human-message', '/api/approve', '/api/agent-action', '/api/waitlist', '/api/company-power', '/api/workflow-layout', '/api/credential-request/fill'];
     if (POST_ROUTES.indexOf(urlPath) === -1) return send(res, 403, '403 Forbidden');
     var chunks = '';
     req.on('data', function (c) { chunks += c; if (chunks.length > 20000) req.destroy(); });
@@ -283,6 +354,9 @@ var server = http.createServer(function (req, res) {
       if (urlPath === '/api/approve') return apiApprove(chunks, res);
       if (urlPath === '/api/agent-action') return apiAgentAction(chunks, res);
       if (urlPath === '/api/waitlist') return apiWaitlist(chunks, res);
+      if (urlPath === '/api/company-power') return apiCompanyPower(chunks, res);
+      if (urlPath === '/api/workflow-layout') return apiWorkflowLayout(chunks, res);
+      if (urlPath === '/api/credential-request/fill') return apiCredentialFill(chunks, res);
       return apiTick(res);
     });
     return;

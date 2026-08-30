@@ -155,6 +155,16 @@ function createBounceTask(fromTask, targetAgentId, missing) {
 // --- tick ----------------------------------------------------------------
 function tick() {
   L.ensureDirs();
+
+  // interruptor mestre: se a empresa estiver desligada, nao ativa nada.
+  // (company/state/company-power.json -- POST /api/company-power no dashboard)
+  var power = L.readJSON(path.join(L.P.stateDir, 'company-power.json'), { on: true });
+  if (power && power.on === false) {
+    console.log('== orchestrator tick @ ' + new Date().toISOString() + ' ==');
+    console.log('EMPRESA DESLIGADA (company-power.json: on=false) -- nenhuma tarefa ativada neste tick.');
+    return;
+  }
+
   var agents = L.readAgents();
   var tasks = L.readTasks();
 

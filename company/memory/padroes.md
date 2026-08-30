@@ -110,3 +110,40 @@ instalar). Cada `.md` de agente carrega as seções `MODELO & EFFORT` e
 
 O card de cada um dos 49 agentes exibe: **modelo · effort · nível de
 permissão (N1–N5)** + status + TASK atual + última ação + skill em uso.
+
+## Missão única (fixada 2026-08-30)
+
+A empresa inteira existe para **uma coisa só**: pesquisar → decidir um
+app/solução prático do dia a dia → construir → vender pro cliente. Nenhum
+agente propõe trabalho fora disso (infra interna, ferramenta pra uso próprio
+etc. só se servir diretamente esse funil).
+
+## Pesquisa de APIs/serviços grátis (obrigatório antes de pedir credencial)
+
+Antes de qualquer agente rodar `scripts/request-credential.js`, ele precisa
+ter pesquisado e registrado (no `TASK` ou no `brief.md`/`blueprint.md` do
+projeto) **pelo menos 1 alternativa gratuita ou free-tier** para a
+necessidade, com evidência (nome do serviço, limite do plano grátis, link).
+Só depois disso o pedido de credencial é legítimo. Fallback: se não achar
+nada grátis, registrar isso explicitamente como risco/custo antes de pedir
+uma chave paga — nunca pedir "porque sim".
+
+## Gate do CEO para oportunidades (fundador só vê o que passou por A07)
+
+Quando pesquisa profunda encontra uma oportunidade nova que vale a pena
+construir (fora do fluxo normal de app-XXX já em andamento):
+
+1. O agente que encontrou registra com
+   `node scripts/propose-opportunity.js <agente> "<titulo>" "<resumo>" "<evidencia>"`.
+   Isso cria `company/opportunities/OPP-XXXX.md` com `status: proposta`.
+2. **A proposta NÃO é visível ao fundador ainda.**
+3. O A07 (CEO) analisa e decide com
+   `node scripts/ceo-forward.js <OPP-ID> encaminhar` (só então vira item
+   pendente no Chatbot Humano / `approvals.json`) ou
+   `node scripts/ceo-forward.js <OPP-ID> arquivar "motivo"` (fica só no
+   histórico, nunca chega ao fundador).
+4. **Regra dura de arquitetura:** `scripts/ceo-forward.js` é o **único**
+   script do repositório autorizado a escrever em
+   `company/state/approvals.json`. Nenhum outro agente/script tem esse
+   caminho. Isso é o que garante, em código (não só em convenção), que só
+   chega ao fundador o que o CEO validou.

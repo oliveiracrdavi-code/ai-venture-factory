@@ -28,7 +28,10 @@ function U(name) {
     'chat-merged.jsonl': '/company/state/chat-merged.jsonl',
     'human-chat.jsonl': '/company/state/human-chat.jsonl',
     'announcements.json': '/company/state/announcements.json',
-    'approvals.json': '/company/state/approvals.json'
+    'approvals.json': '/company/state/approvals.json',
+    'company-power.json': '/company/state/company-power.json',
+    'workflow-layout.json': '/company/state/workflow-layout.json',
+    'credential-requests.json': '/company/state/credential-requests.json'
   };
   return m[name] || ('/company/state/' + name);
 }
@@ -68,7 +71,9 @@ var INTEGRATIONS = [
 var state = {
   agents: [], pipeline: { projects: {} }, events: [], metrics: {}, posts: [],
   security: { projects: {} }, pricing: null, chat: [], humanChat: [],
-  announcements: { items: [] }, approvals: { pending: [] }, ts: 0
+  announcements: { items: [] }, approvals: { pending: [] },
+  companyPower: { on: true }, workflowLayout: { positions: {}, connected: false },
+  credentialRequests: { pending: [], filled: [] }, ts: 0
 };
 
 /* ---------- helpers ---------- */
@@ -83,9 +88,17 @@ function post(url, body) {
     .then(function (r) { return r.json(); });
 }
 function agentById(id) { for (var i = 0; i < state.agents.length; i++) if (state.agents[i].id === id) return state.agents[i]; return null; }
+var NAME_ACRONYMS = { ceo:1, cto:1, pmo:1, ux:1, ui:1, api:1, ai:1, seo:1, aso:1, qa:1, e2e:1, cs:1, it:1, os:1, mvp:1, crm:1, kpi:1, aba:1 };
+function displayName(agent) {
+  if (!agent || !agent.slug) return agent ? agent.id : '';
+  return String(agent.slug).split('-').map(function (tok) {
+    if (NAME_ACRONYMS[tok.toLowerCase()]) return tok.toUpperCase();
+    return tok.charAt(0).toUpperCase() + tok.slice(1);
+  }).join(' ');
+}
 function statusBadge(s) { return '<span class="sh-badge b-' + esc(s) + '">' + esc(s) + '</span>'; }
 
-window.AVF = { state: state, esc: esc, put: put, SPR: SPR, U: U, HOSTED: HOSTED, post: post, shortTs: shortTs, getText: getText, getJSON: getJSON, parseJsonl: parseJsonl, agentById: agentById };
+window.AVF = { state: state, esc: esc, put: put, SPR: SPR, U: U, HOSTED: HOSTED, post: post, shortTs: shortTs, getText: getText, getJSON: getJSON, parseJsonl: parseJsonl, agentById: agentById, displayName: displayName, openAgent: function (id) { openAgent(id); }, showDialog: function (h, b) { showDialog(h, b); } };
 
 /* ---------- load ---------- */
 function loadAll() {
@@ -93,7 +106,8 @@ function loadAll() {
     getJSON(U('agents.json')), getJSON(U('pipeline.json')), getText(U('events.jsonl')),
     getJSON(U('metrics.json')), getText(U('posts.jsonl')), getJSON(U('security.json')),
     getJSON(U('pricing.json')), getText(U('chat-merged.jsonl')), getText(U('human-chat.jsonl')),
-    getJSON(U('announcements.json')), getJSON(U('approvals.json'))
+    getJSON(U('announcements.json')), getJSON(U('approvals.json')),
+    getJSON(U('company-power.json')), getJSON(U('workflow-layout.json')), getJSON(U('credential-requests.json'))
   ]).then(function (r) {
     if (r[0] && r[0].agents) state.agents = r[0].agents;
     if (r[1] && r[1].projects) state.pipeline = r[1];
@@ -106,6 +120,9 @@ function loadAll() {
     state.humanChat = parseJsonl(r[8]);
     if (r[9]) state.announcements = r[9];
     if (r[10]) state.approvals = r[10];
+    if (r[11]) state.companyPower = r[11];
+    if (r[12]) state.workflowLayout = r[12];
+    if (r[13]) state.credentialRequests = r[13];
     state.ts = Date.now();
   });
 }
@@ -113,13 +130,14 @@ function loadAll() {
 /* ---------- nav / router ---------- */
 var TABS = [
   ['workflow', 'Workflow'], ['chat', 'Chat geral'], ['human', 'Chatbot humano'],
+  ['connections', 'Conexões'],
   ['agents', 'Agentes'], ['overview', 'Visão geral'], ['finance', 'Financeiro'],
   ['security', 'Segurança'], ['integrations', 'Integrações']
 ];
 function icon() { return '<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'; }
 function renderNav(active) {
   put(document.getElementById('nav'), TABS.map(function (t, i) {
-    return (i === 4 ? '<div class="sep"></div>' : '') +
+    return (t[0] === 'agents' ? '<div class="sep"></div>' : '') +
       '<a href="#' + t[0] + '" class="' + (t[0] === active ? 'active' : '') + '">' + icon() + '<span>' + esc(t[1]) + '</span></a>';
   }).join(''));
 }
@@ -142,6 +160,7 @@ function render() {
   if (r.view === 'workflow') window.WF.render(main);
   else if (r.view === 'chat') window.AgentChat.render(main);
   else if (r.view === 'human') window.HumanChat.render(main);
+  else if (r.view === 'connections') window.Connections.render(main);
   else if (r.view === 'agents') put(main, viewAgents());
   else if (r.view === 'finance') put(main, viewFinance());
   else if (r.view === 'security') put(main, viewSecurity());
@@ -157,6 +176,20 @@ function render() {
   var wt = document.getElementById('wf-title');
   if (wt) wt.textContent = r.view === 'workflow'
     ? ('Hierarchical AI Multi-Agent Workflow (' + state.agents.length + ' Agents)') : lbl;
+  renderPowerButton();
+}
+function renderPowerButton() {
+  var b = document.getElementById('btn-power');
+  if (!b) return;
+  var on = !(state.companyPower && state.companyPower.on === false);
+  b.textContent = on ? 'Empresa: LIGADA' : 'Empresa: DESLIGADA';
+  b.classList.toggle('btn-off', !on);
+  b.onclick = function () {
+    if (HOSTED) { alert('Modo monitor (hospedado). Ligue/desligue pela sessao local do Claude.'); return; }
+    var next = !on;
+    if (!confirm(next ? 'Ligar a empresa novamente?' : 'Desligar a empresa? Nenhum agente ativa tarefa nova ate voce religar.')) return;
+    post('/api/company-power', { on: next }).then(function () { return loadAll(); }).then(render);
+  };
 }
 
 /* ---------- overview ---------- */
