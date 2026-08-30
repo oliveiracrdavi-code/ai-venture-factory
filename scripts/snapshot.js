@@ -192,7 +192,7 @@ function main() {
 
   // workflow-layout.json -> posicoes livres dos nos (arraste) + estado do botao Conectar
   if (!L.readJSON(path.join(L.P.stateDir, 'workflow-layout.json'), null))
-    L.writeJSON(path.join(L.P.stateDir, 'workflow-layout.json'), { positions: {}, connected: false, ts: new Date().toISOString() });
+    L.writeJSON(path.join(L.P.stateDir, 'workflow-layout.json'), { positions: {}, connected: false, locked: false, ts: new Date().toISOString() });
 
   // credential-requests.json -> pedidos de API/credencial feitos pelos agentes
   if (!L.readJSON(path.join(L.P.stateDir, 'credential-requests.json'), null))

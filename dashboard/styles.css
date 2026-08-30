@@ -285,3 +285,6 @@ img{image-rendering:pixelated}
 /* ---------- conexoes (pedidos de credencial) ---------- */
 .cred-card{border-color:var(--border)}
 .cred-input:focus{outline:none;border-color:var(--border-focus)}
+.n8-lead .nname{font-weight:700}
+.n8-ctl button#wf-lock{width:auto;padding:0 10px;font-size:var(--text-xs);white-space:nowrap}
+.n8-ctl button#wf-lock.on{background:var(--warn);border-color:var(--warn);color:#2a1a00}

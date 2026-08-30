@@ -279,8 +279,8 @@ function apiCompanyPower(body, res) {
   sendJson(res, 200, { ok: true, on: on });
 }
 
-// POST /api/workflow-layout  { positions: {A01:{x,y},...}, connected: bool }
-// posicoes livres dos nos no canvas (arraste) + estado do botao "Conectar".
+// POST /api/workflow-layout  { positions: {A01:{x,y},...}, connected: bool, locked: bool }
+// posicoes livres dos nos no canvas (arraste) + estado dos botoes "Conectar" e "Travar".
 function apiWorkflowLayout(body, res) {
   var data = {};
   try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
@@ -291,7 +291,7 @@ function apiWorkflowLayout(body, res) {
     var p = positions[id];
     if (p && isFinite(p.x) && isFinite(p.y)) clean[id] = { x: Math.round(p.x), y: Math.round(p.y) };
   });
-  L.writeJSON(WORKFLOW_LAYOUT, { positions: clean, connected: !!data.connected, ts: new Date().toISOString() });
+  L.writeJSON(WORKFLOW_LAYOUT, { positions: clean, connected: !!data.connected, locked: !!data.locked, ts: new Date().toISOString() });
   sendJson(res, 200, { ok: true });
 }
 

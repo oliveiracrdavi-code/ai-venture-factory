@@ -147,3 +147,11 @@ construir (fora do fluxo normal de app-XXX já em andamento):
    `company/state/approvals.json`. Nenhum outro agente/script tem esse
    caminho. Isso é o que garante, em código (não só em convenção), que só
    chega ao fundador o que o CEO validou.
+
+## Padrão mínimo de design (fixado 2026-08-30)
+
+`company/design/DESIGN-STANDARD.md` + `company/design/bom-gosto-design-reference.pdf`
+definem o **piso mínimo aceitável** de qualidade visual pra qualquer front-end
+do projeto (dashboard, apps-XXX, landings). Nada abaixo desse nível é
+aceitável. Toda entrega de design/front-end termina com auditoria contra esse
+checklist antes de ser dada como pronta.

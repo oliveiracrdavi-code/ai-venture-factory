@@ -1,86 +1,107 @@
-/* workflow-canvas.js — canvas n8n com nos ARRASTAVEIS.
-   - Nome do no = papel real do agente (CEO, Backend Dev, QA Lead...), nao "AI Agent".
-   - Posicao de cada no e livre: arraste, solta, persiste em company/state/workflow-layout.json.
-   - Botao "Conectar" liga/desliga as linhas de relacao entre os agentes, recalculadas
-     a partir da posicao ATUAL de cada um (nao da posicao padrao). */
+/* workflow-canvas.js — organizacao HIERARQUICA por bloco (proposta pelo AVF):
+   - cada BLOCO (area) vira um grupo: lider em cima, resto da equipe numa
+     UNICA linha embaixo, com espaco generoso entre cada um.
+   - os 8 blocos ficam em grade 4x2 na ordem do pipeline (G1..G8), formando
+     uma "cobra": bloco1->2->3->4 (linha de cima, esq->dir), desce, depois
+     bloco5->6->7->8 (linha de baixo, dir->esq) -- a coluna 4 fica alinhada,
+     entao a descida e reta.
+   - linhas de conexao ligam os LIDERES entre si (a espinha do fluxo) + cada
+     lider a sua equipe. Curvas suaves (bezier arredondado).
+   - nos continuam arrastaveis; a posicao de cada um pode ser TRAVADA
+     (botao Travar/Destravar) para nao mexer sem querer depois de organizado.
+   - nome do no = papel real do agente (CEO, Backend Dev, QA Lead...). */
 'use strict';
 window.WF = (function () {
-  var SQ = 62, ICON = 34, COL = 116, ROW = 104, GRID_W = 3;
-  var Y_WH = 46, Y_ORCH = 176, Y_HUB = 312, Y_GRID = 452;
-  var BRANCH_GAP = 74, PAD = 90;
+  var SQ = 62, ICON = 34, COL = 112, ROW = 108;
+  var BLOCK_GAP_X = 76, BLOCK_GAP_Y = 118, PAD = 90;
+  var Y_WH = 40, Y_ORCH = 158, Y_GRID = 300;
+  var BLOCK_H = ROW + SQ; /* altura fixa de cada bloco: lider + linha da equipe */
+
+  var HUB_ID = 'A08'; /* orquestrador global — fica sozinho no topo, fora dos blocos */
+  var LEAD_BY_BLOCO = ['A01', 'A07', 'A11', 'A17', 'A27', 'A31', 'A37', 'A43'];
+  /* posicao (linha,coluna) de cada bloco na grade — forma a "cobra" do pipeline */
+  var COLROW = [
+    { row: 0, col: 0 }, { row: 0, col: 1 }, { row: 0, col: 2 }, { row: 0, col: 3 },
+    { row: 1, col: 3 }, { row: 1, col: 2 }, { row: 1, col: 1 }, { row: 1, col: 0 }
+  ];
 
   var view = { x: 0, y: 0, k: 1 };
   var panDrag = null;
   var nodeDrag = null;
+  var pendingClick = null;
   var customPos = {};
   var connected = false;
+  var locked = false;
   var guideOpen = false;
   var _fitted = false, _lastN = -1, _lastMain = null, _saveTimer = null;
 
   var BLOCOS = ['Pesquisa & Viabilidade', 'Governança', 'Produto & Arquitetura', 'Engenharia',
     'Conectores', 'Cybersecurity', 'QA', 'Growth & Finanças'];
-  var BRANCHES = [[0, 1], [2, 3], [4, 5], [6, 7]];
 
   function esc(s) { return window.AVF.esc(s); }
   function bi(b) { var m = String(b || '').match(/^(\d)/); return m ? (Number(m[1]) - 1) : 7; }
   function tint(ci) { return ['#7c5cff', '#f59e0b', '#3b82f6', '#f97316', '#06b6d4', '#ef4444', '#22c55e', '#ec4899'][ci] || '#7c5cff'; }
   function roleName(a) { return window.AVF.displayName(a); }
 
+  /* ---------- layout: grade 4x2 de blocos (lider em cima, equipe numa linha) ---------- */
   function layout(agents) {
     var byBloco = [[], [], [], [], [], [], [], []];
     agents.forEach(function (a) { byBloco[bi(a.bloco)].push(a); });
     byBloco.forEach(function (l) { l.sort(function (a, b) { return a.id.localeCompare(b.id); }); });
 
-    var orchA = agents.filter(function (a) { return a.id === 'A08'; })[0] || null;
-    var branchW = GRID_W * COL;
-    var totalW = BRANCHES.length * branchW + (BRANCHES.length - 1) * BRANCH_GAP;
-    var W = totalW + PAD * 2;
-    var cx = W / 2;
+    var orchA = agents.filter(function (a) { return a.id === HUB_ID; })[0] || null;
 
-    var pos = {}, sections = [], hubs = [], maxY = Y_GRID;
-
-    BRANCHES.forEach(function (blocos, bIdx) {
-      var bx = PAD + bIdx * (branchW + BRANCH_GAP);
-      var bcx = bx + branchW / 2;
-      var y = Y_GRID;
-      var first = byBloco[blocos[0]].filter(function (a) { return a.id !== 'A08'; })[0];
-      var hub = null;
-      if (first) { hub = { x: bcx - SQ / 2, y: Y_HUB, a: first, ci: blocos[0] }; pos[first.id] = hub; hubs.push(hub); }
-      blocos.forEach(function (ci) {
-        var list = byBloco[ci].filter(function (a) { return a.id !== 'A08' && !(hub && a.id === hub.a.id); });
-        if (!list.length && !(hub && hub.ci === ci)) return;
-        var rows = Math.max(1, Math.ceil(list.length / GRID_W));
-        var secY = y - 26;
-        var secH = 26 + rows * ROW - (ROW - SQ) + 34;
-        sections.push({ ci: ci, x: bx - 14, y: secY, w: branchW + 28, h: secH });
-        list.forEach(function (a, i) {
-          var r = Math.floor(i / GRID_W), c = i % GRID_W;
-          var n = Math.min(GRID_W, list.length - r * GRID_W);
-          var rowW = n * COL;
-          var sx = bcx - rowW / 2 + c * COL + (COL - SQ) / 2;
-          pos[a.id] = { x: sx, y: y + r * ROW, a: a, ci: ci };
-        });
-        y += rows * ROW + 26;
-        if (y > maxY) maxY = y;
-      });
+    /* separa lider + equipe (sem o lider, sem o hub A08) de cada bloco */
+    var blockInfo = byBloco.map(function (list, ci) {
+      var leadId = LEAD_BY_BLOCO[ci];
+      var lead = list.filter(function (a) { return a.id === leadId; })[0] || list[0];
+      var team = list.filter(function (a) { return a.id !== lead.id && a.id !== HUB_ID; });
+      var w = Math.max(1, team.length) * COL;
+      return { ci: ci, lead: lead, team: team, w: w };
     });
 
-    var wh = { x: cx - SQ / 2, y: Y_WH, id: 'WH00', name: 'Intake', sub: 'novo pedido / G0', kind: 'io' };
-    var orch = orchA ? { x: cx - SQ / 2, y: Y_ORCH, a: orchA, ci: 1, isOrch: true } : null;
+    /* largura de cada coluna = maior largura entre os 2 blocos empilhados nela */
+    var colW = [0, 0, 0, 0];
+    COLROW.forEach(function (rc, ci) { if (blockInfo[ci].w > colW[rc.col]) colW[rc.col] = blockInfo[ci].w; });
+    var colX = [PAD, 0, 0, 0];
+    for (var c = 1; c < 4; c++) colX[c] = colX[c - 1] + colW[c - 1] + BLOCK_GAP_X;
+    var W = colX[3] + colW[3] + PAD;
+    var row1Y = Y_GRID + BLOCK_H + BLOCK_GAP_Y;
+
+    var pos = {}, sections = [];
+    COLROW.forEach(function (rc, ci) {
+      var info = blockInfo[ci];
+      var blockX = colX[rc.col] + (colW[rc.col] - info.w) / 2;
+      var blockY = rc.row === 0 ? Y_GRID : row1Y;
+      var bcx = blockX + info.w / 2;
+
+      pos[info.lead.id] = { x: bcx - SQ / 2, y: blockY, a: info.lead, ci: ci, isLead: true };
+      info.team.forEach(function (a, i) {
+        var n = info.team.length;
+        var rowW = n * COL;
+        var sx = bcx - rowW / 2 + i * COL + (COL - SQ) / 2;
+        pos[a.id] = { x: sx, y: blockY + ROW, a: a, ci: ci };
+      });
+      sections.push({ ci: ci, x: blockX - 16, y: blockY - 32, w: info.w + 32, h: BLOCK_H + 32 + 16 });
+    });
+
+    var wh = { x: W / 2 - SQ / 2, y: Y_WH, id: 'WH00', name: 'Intake', sub: 'novo pedido / G0', kind: 'io' };
+    var orch = orchA ? { x: W / 2 - SQ / 2, y: Y_ORCH, a: orchA, ci: 1, isOrch: true } : null;
     if (orch) pos[orchA.id] = orch;
-    var setN = { x: cx - SQ / 2, y: maxY + 30, id: 'SET', name: 'Consolidação', sub: 'junta artefatos', kind: 'io' };
-    var out = { x: cx - SQ / 2, y: maxY + 30 + ROW, id: 'OUT', name: 'Publicação', sub: 'marketing · monitor', kind: 'io' };
-    var H = out.y + SQ + 96;
+    var setY = row1Y + BLOCK_H + 78;
+    var setN = { x: W / 2 - SQ / 2, y: setY, id: 'SET', name: 'Consolidação', sub: 'junta artefatos', kind: 'io' };
+    var out = { x: W / 2 - SQ / 2, y: setY + ROW, id: 'OUT', name: 'Publicação', sub: 'marketing · monitor', kind: 'io' };
+    var H = out.y + SQ + 90;
 
     function applyOverride(node, id) { var o = customPos[id]; if (o) { node.x = o.x; node.y = o.y; } }
     applyOverride(wh, 'WH00'); applyOverride(setN, 'SET'); applyOverride(out, 'OUT');
     Object.keys(pos).forEach(function (id) { applyOverride(pos[id], id); });
 
-    return { pos: pos, sections: sections, hubs: hubs, wh: wh, orch: orch, set: setN, out: out, w: W, h: H, cx: cx, byBloco: byBloco };
+    return { pos: pos, sections: sections, wh: wh, orch: orch, set: setN, out: out, w: W, h: H, byBloco: byBloco };
   }
 
   function vpath(x1, y1, x2, y2, r) {
-    r = r || 12;
+    r = r || 14;
     if (Math.abs(x1 - x2) < 1.5 && Math.abs(y1 - y2) < 1.5) return '';
     if (Math.abs(x1 - x2) < 1.5) return 'M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2;
     var my = (y1 + y2) / 2, d = x2 > x1 ? 1 : -1;
@@ -93,9 +114,10 @@ window.WF = (function () {
       ' Q' + x2 + ',' + my + ' ' + x2 + ',' + (my + rr) +
       ' L' + x2 + ',' + y2;
   }
-  function hpath(x1, y1, x2, y2) {
+  function hpath(x1, y1, x2, y2, r) {
+    r = r || 12;
     if (Math.abs(y1 - y2) < 1.5) return 'M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2;
-    var mx = (x1 + x2) / 2, rr = 10, d = y2 > y1 ? 1 : -1;
+    var mx = (x1 + x2) / 2, rr = Math.min(r, Math.abs(x2 - x1) / 2), d = y2 > y1 ? 1 : -1;
     return 'M' + x1 + ',' + y1 + ' L' + (mx - rr) + ',' + y1 +
       ' Q' + mx + ',' + y1 + ' ' + mx + ',' + (y1 + rr * d) +
       ' L' + mx + ',' + (y2 - rr * d) + ' Q' + mx + ',' + y2 + ' ' + (mx + rr) + ',' + y2 + ' L' + x2 + ',' + y2;
@@ -123,8 +145,10 @@ window.WF = (function () {
         ? '<circle cx="8" cy="' + (SQ - 6) + '" r="5.5" fill="#f59e0b"/><text x="8" y="' + (SQ - 2.5) + '" text-anchor="middle" font-size="8" fill="#120c26" font-weight="700">!</text>'
         : '<circle cx="8" cy="' + (SQ - 6) + '" r="5.5" fill="#22c55e"/><text x="8" y="' + (SQ - 3) + '" text-anchor="middle" font-size="8" fill="#06210f" font-weight="700">✓</text>';
     var mi = st === 'trabalhando' ? '<circle cx="' + (SQ - 8) + '" cy="8" r="4" fill="#7c5cff"/>' : '';
+    var leadRing = p.isLead ? '<rect x="-4" y="-4" width="' + (SQ + 8) + '" height="' + (SQ + 8) + '" rx="17" fill="none" stroke="' + tint(p.ci) + '" stroke-width="1.5" opacity="0.55"/>' : '';
     var name = roleName(a);
-    return '<g class="n8-node s-' + esc(st) + '" data-node="' + esc(id) + '" transform="translate(' + p.x + ',' + p.y + ')">' +
+    return '<g class="n8-node s-' + esc(st) + (p.isLead ? ' n8-lead' : '') + '" data-node="' + esc(id) + '" transform="translate(' + p.x + ',' + p.y + ')">' +
+      leadRing +
       '<text class="nid" x="' + (SQ + 8) + '" y="12">' + esc(id) + '</text>' +
       '<rect class="sq" width="' + SQ + '" height="' + SQ + '" rx="14"/>' +
       '<rect class="tint" x="11" y="11" width="' + (SQ - 22) + '" height="' + (SQ - 22) + '" rx="10" fill="' + c + '"/>' +
@@ -134,52 +158,56 @@ window.WF = (function () {
       '<circle class="n8-port" cx="0" cy="' + (SQ / 2) + '" r="3.5"/>' +
       '<circle class="n8-port" cx="' + SQ + '" cy="' + (SQ / 2) + '" r="3.5"/>' +
       badge + mi +
-      '<text class="nname" x="' + (SQ / 2) + '" y="' + (SQ + 20) + '">' + esc(name) + '</text>' +
+      '<text class="nname" x="' + (SQ / 2) + '" y="' + (SQ + 20) + '">' + esc(name) + (p.isLead ? ' ★' : '') + '</text>' +
       '<text class="nsub" x="' + (SQ / 2) + '" y="' + (SQ + 34) + '">' + esc(id) + '</text>' +
       '</g>';
   }
 
+  /* ---------- espinha do fluxo: WH00 -> A08 -> lider1 -> lider2 -> ... -> lider8 -> Set -> Out.
+     Cada lider tambem se liga a sua propria equipe (linha unica embaixo). ---------- */
   function computeEdges(L) {
     var edges = [];
     var bot = function (o) { return { x: o.x + SQ / 2, y: o.y + SQ }; };
     var top = function (o) { return { x: o.x + SQ / 2, y: o.y }; };
     var lft = function (o) { return { x: o.x, y: o.y + SQ / 2 }; };
     var rgt = function (o) { return { x: o.x + SQ, y: o.y + SQ / 2 }; };
+    function chain(a, b) {
+      if (Math.abs(a.x - b.x) < 1.5) return vpath(bot(a).x, bot(a).y, top(b).x, top(b).y);
+      if (b.x > a.x) return hpath(rgt(a).x, rgt(a).y, lft(b).x, lft(b).y);
+      return hpath(lft(a).x, lft(a).y, rgt(b).x, rgt(b).y);
+    }
+
     var head = L.orch || null;
     if (head) edges.push({ d: vpath(bot(L.wh).x, bot(L.wh).y, top(head).x, top(head).y), lbl: 'intake' });
-    L.hubs.forEach(function (h, i) {
-      var from = head ? bot(head) : bot(L.wh);
-      edges.push({ d: vpath(from.x, from.y, top(h).x, top(h).y), lbl: 'G' + (i + 1) });
+
+    var leads = LEAD_BY_BLOCO.map(function (id) { return L.pos[id]; });
+    if (head && leads[0]) edges.push({ d: chain(head, leads[0]), lbl: 'G1' });
+    for (var i = 0; i + 1 < leads.length; i++) {
+      if (leads[i] && leads[i + 1]) edges.push({ d: chain(leads[i], leads[i + 1]), lbl: 'G' + (i + 2) });
+    }
+
+    /* lider -> equipe (linha unica, encadeada da esquerda p/ direita) */
+    L.byBloco.forEach(function (list, ci) {
+      var leadId = LEAD_BY_BLOCO[ci];
+      var team = list.filter(function (a) { return a.id !== leadId && a.id !== HUB_ID; });
+      if (!team.length) return;
+      var leadPos = L.pos[leadId];
+      var first = L.pos[team[0].id];
+      if (leadPos && first) { var d = vpath(bot(leadPos).x, bot(leadPos).y, top(first).x, top(first).y); if (d) edges.push({ d: d }); }
+      for (var i = 0; i + 1 < team.length; i++) {
+        var pa = L.pos[team[i].id], pb = L.pos[team[i + 1].id];
+        if (pa && pb) edges.push({ d: hpath(rgt(pa).x, rgt(pa).y, lft(pb).x, lft(pb).y) });
+      }
     });
-    L.sections.forEach(function (s) {
-      var list = L.byBloco[s.ci].filter(function (a) { return L.pos[a.id] && !L.pos[a.id].isOrch && L.hubs.indexOf(L.pos[a.id]) === -1; });
-      if (!list.length) return;
-      var rows = {};
-      list.forEach(function (a) { var p = L.pos[a.id]; (rows[p.y] = rows[p.y] || []).push(p); });
-      var keys = Object.keys(rows).sort(function (a, b) { return a - b; });
-      var secCx = s.x + s.w / 2;
-      var hub = null, best = 1e9;
-      L.hubs.forEach(function (h) { var d = Math.abs((h.x + SQ / 2) - secCx); if (d < best) { best = d; hub = h; } });
-      keys.forEach(function (yk, ri) {
-        var row = rows[yk].sort(function (a, b) { return a.x - b.x; });
-        var parent = ri > 0 ? rows[keys[ri - 1]][0] : hub;
-        if (parent) { var d = vpath(bot(parent).x, bot(parent).y, top(row[0]).x, top(row[0]).y); if (d) edges.push({ d: d }); }
-        for (var i = 0; i + 1 < row.length; i++) edges.push({ d: hpath(rgt(row[i]).x, rgt(row[i]).y, lft(row[i + 1]).x, lft(row[i + 1]).y) });
-      });
-    });
-    L.hubs.forEach(function (h, i) {
-      var blocos = BRANCHES[i] || [], last = null;
-      blocos.forEach(function (ci) {
-        L.byBloco[ci].forEach(function (a) { var p = L.pos[a.id]; if (!p || p.isOrch) return; if (!last || p.y > last.y || (p.y === last.y && p.x > last.x)) last = p; });
-      });
-      if (last) { var d = vpath(bot(last).x, bot(last).y, top(L.set).x, top(L.set).y); if (d) edges.push({ d: d }); }
-    });
+
+    var lastLead = leads[leads.length - 1];
+    if (lastLead) edges.push({ d: vpath(bot(lastLead).x, bot(lastLead).y, top(L.set).x, top(L.set).y) });
     edges.push({ d: vpath(bot(L.set).x, bot(L.set).y, top(L.out).x, top(L.out).y), lbl: 'publica' });
-    var fb = null;
-    L.byBloco[7].forEach(function (a) { var p = L.pos[a.id]; if (p && (!fb || p.y > fb.y)) fb = p; });
-    if (fb && head) {
-      var x1 = rgt(fb).x, y1 = rgt(fb).y, x2 = rgt(head).x, y2 = rgt(head).y, off = 58;
-      edges.push({ cls: 'dash', lbl: 'feedback', d: 'M' + x1 + ',' + y1 + ' L' + (x1 + off) + ',' + y1 + ' L' + (x1 + off) + ',' + y2 + ' L' + x2 + ',' + y2 });
+
+    /* feedback tracejado: ultimo bloco (Growth/Monitor) -> orquestrador (ciclo de melhoria) */
+    if (head && leads[7]) {
+      var x1 = lft(leads[7]).x, y1 = lft(leads[7]).y, x2 = lft(head).x, y2 = lft(head).y, off = 60;
+      edges.push({ cls: 'dash', lbl: 'feedback', d: 'M' + x1 + ',' + y1 + ' L' + (x1 - off) + ',' + y1 + ' L' + (x1 - off) + ',' + y2 + ' L' + x2 + ',' + y2 });
     }
     return edges;
   }
@@ -239,15 +267,22 @@ window.WF = (function () {
   function fit(L, svg) {
     var r = svg.getBoundingClientRect();
     var k = Math.min(r.width / L.w, r.height / L.h) * 0.94;
-    view.k = Math.max(0.62, Math.min(1.1, k));
+    view.k = Math.max(0.4, Math.min(1.1, k));
     view.x = (r.width - L.w * view.k) / 2; view.y = 12; applyView();
   }
 
+  var _dirty = false; /* true enquanto ha mudanca local (drag/Conectar/Travar)
+    ainda nao confirmada pelo servidor. Enquanto true, render() NAO sincroniza
+    customPos/connected/locked do poll -- senao um poll que chega entre o clique
+    e o POST (debounced) reverte a mudanca do usuario silenciosamente (corrida). */
   function saveLayout() {
+    _dirty = true;
     clearTimeout(_saveTimer);
     _saveTimer = setTimeout(function () {
-      if (window.AVF.HOSTED) return;
-      window.AVF.post('/api/workflow-layout', { positions: customPos, connected: connected }).catch(function () {});
+      if (window.AVF.HOSTED) { _dirty = false; return; }
+      window.AVF.post('/api/workflow-layout', { positions: customPos, connected: connected, locked: locked })
+        .then(function () { _dirty = false; })
+        .catch(function () { _dirty = false; });
     }, 400);
   }
 
@@ -263,8 +298,12 @@ window.WF = (function () {
     var S = window.AVF, agents = S.state.agents;
     if (!agents.length) { S.put(main, '<p class="empty">sem agentes ainda</p>'); return; }
 
-    customPos = (S.state.workflowLayout && S.state.workflowLayout.positions) || {};
-    connected = !!(S.state.workflowLayout && S.state.workflowLayout.connected);
+    if (!_dirty) {
+      var wl = S.state.workflowLayout || {};
+      customPos = wl.positions || {};
+      connected = !!wl.connected;
+      locked = !!wl.locked;
+    }
 
     var L = layout(agents);
     var running = agents.filter(function (a) { return a.status === 'trabalhando'; }).length;
@@ -275,19 +314,21 @@ window.WF = (function () {
       '<div class="n8-canvas">' +
       '<svg id="wf-svg" viewBox="0 0 ' + L.w + ' ' + L.h + '"><g id="wf-root">' + build(L) + '</g></svg>' +
       '<div class="n8-guide"><div class="gt" id="wf-gt">ℹ Como usar este workflow ▸</div>' +
-      '<div class="gc collapsed" id="wf-gc"><b>Arrastar</b><br>Clique e arraste qualquer nó para reposicionar. Fica salvo.<br><br>' +
-      '<b>Conectar</b><br>Depois de organizar do seu jeito, clique em "Conectar" para desenhar as linhas de relação entre os agentes (com base na posição atual de cada um).<br><br>' +
+      '<div class="gc collapsed" id="wf-gc"><b>Organização</b><br>Cada bloco (área) mostra o líder ★ em cima e a equipe numa única linha embaixo. Os líderes formam a espinha do fluxo.<br><br>' +
+      '<b>Arrastar</b><br>Clique e arraste um nó pra reposicionar (fica salvo). Use <b>Travar</b> pra impedir mexer sem querer.<br><br>' +
+      '<b>Conectar</b><br>Desenha as linhas de relação com base na posição atual de cada um.<br><br>' +
       '<b>Nós</b><br>✓ verde = ok · roxo pulsando = trabalhando · vermelho = bloqueado · âmbar = aguarda humano.</div></div>' +
       '<div class="n8-active"><div class="ah"><span>Active</span><span class="x">✕</span></div>' +
       '<div class="ab"><span class="g"></span>' + agents.length + ' Running Nodes</div></div>' +
       '<div class="n8-ctl">' +
+      '<button id="wf-lock" class="' + (locked ? 'on' : '') + '" title="Travar/destravar o movimento dos nós">' + (locked ? '🔒 Travado' : '🔓 Destravado') + '</button>' +
       '<button id="wf-connect" class="' + (connected ? 'on' : '') + '" title="Ligar/desligar as linhas de conexão entre os agentes">' + (connected ? '🔌 Conectado' : '🔌 Conectar') + '</button>' +
       '<button id="wf-fit" title="ajustar à tela">⤢</button><button id="wf-in" title="mais zoom">+</button>' +
       '<button id="wf-out" title="menos zoom">−</button>' +
       '</div>' +
       '</div>' +
       '<div class="n8-status"><span class="on">● Active</span><span>' + agents.length + ' Running Nodes</span>' +
-      '<span class="sp"></span><span>' + running + ' trabalhando · ' + blocked + ' bloqueado(s)</span><span>arraste os nós para reorganizar</span></div>' +
+      '<span class="sp"></span><span>' + running + ' trabalhando · ' + blocked + ' bloqueado(s)</span><span>' + (locked ? 'movimento travado' : 'arraste os nós para reorganizar') + '</span></div>' +
       '</div>');
 
     var svg = document.getElementById('wf-svg');
@@ -307,6 +348,7 @@ window.WF = (function () {
       var n = nodeFromEvent(e);
       if (n) {
         var id = n.getAttribute('data-node');
+        if (locked) { pendingClick = id; return; }
         var p0 = svgPoint(e.clientX, e.clientY);
         var cur = L.pos[id] || (id === 'WH00' ? L.wh : id === 'SET' ? L.set : id === 'OUT' ? L.out : null);
         if (!cur) return;
@@ -342,13 +384,14 @@ window.WF = (function () {
           window.AVF.put(tip, '<b>' + esc(a.id) + ' · ' + esc(roleName(a)) + '</b><br>' + esc(a.bloco) +
             '<br>model <b>' + esc(a.modelo) + '</b> · effort <b>' + esc(a.effort) + '</b> · ' + esc(a.nivel) +
             '<br>status: ' + esc(a.status) + ' · TASK: ' + esc(a.task_atual || '—') +
-            '<br><span style="color:var(--text-3)">arraste para mover</span>');
+            '<br><span style="color:var(--text-3)">' + (locked ? 'travado — clique pra abrir' : 'arraste para mover') + '</span>');
           tip.style.display = 'block'; tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY + 14) + 'px';
         }
       } else if (tip) tip.style.display = 'none';
     });
 
     function endDrag(e) {
+      if (pendingClick) { window.AVF.openAgent(pendingClick); pendingClick = null; }
       if (nodeDrag) {
         if (nodeDrag.moved && nodeDrag.newX != null) {
           customPos[nodeDrag.id] = { x: Math.round(nodeDrag.newX), y: Math.round(nodeDrag.newY) };
@@ -375,6 +418,15 @@ window.WF = (function () {
       var btn = document.getElementById('wf-connect');
       btn.textContent = connected ? '🔌 Conectado' : '🔌 Conectar';
       btn.classList.toggle('on', connected);
+      saveLayout();
+    };
+    document.getElementById('wf-lock').onclick = function () {
+      locked = !locked;
+      var btn = document.getElementById('wf-lock');
+      btn.textContent = locked ? '🔒 Travado' : '🔓 Destravado';
+      btn.classList.toggle('on', locked);
+      var st = document.querySelector('.n8-status span:last-child');
+      if (st) st.textContent = locked ? 'movimento travado' : 'arraste os nós para reorganizar';
       saveLayout();
     };
     document.getElementById('wf-gt').onclick = function () {
