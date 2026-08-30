@@ -49,7 +49,8 @@ var PRECOND = {
   },
   G4: function (p) {
     var f = path.join(L.P.decisionsDir, 'ceo-' + p + '.md');
-    var ok = hasFile(f) && fileHas(f, 'APROVADO');
+    var ok = false;
+    try { ok = hasFile(f) && /verdict:.*APROVADO/i.test(fs.readFileSync(f, 'utf8')); } catch (_) {}
     return { ok: ok, missing: 'company/decisions/ceo-' + p + '.md = APROVADO (G3 CEO)' };
   },
   G5: function (p) {

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T18:17:19.570Z",
+  "generated_at": "2026-08-30T22:33:01.162Z",
   "count": 49,
   "agents": [
     {
@@ -91,7 +91,11 @@
       "gate_principal": "G3",
       "status": "idle",
       "task_atual": null,
-      "ultima_acao": null
+      "ultima_acao": {
+        "ts": "2026-08-30T22:33:01.037Z",
+        "type": "part-report",
+        "summary": "PARTE 6 (G3) completa: CEO decidiu CONDICIONADO para app-001 (score 78/100, zero risco critico). Devolvido ao BLOCO 1 com 3 condicoes (smoke-test 30 cadastros/14 dias, plano de distribuicao, diferenciacao vs gratis). TASK-0009 criada para A08 coordenar reabertura de G2."
+      }
     },
     {
       "id": "A08",
@@ -102,12 +106,12 @@
       "effort": "medium",
       "fallback_pro": "—",
       "gate_principal": "G0–G10 (orquestração)",
-      "status": "idle",
-      "task_atual": null,
+      "status": "trabalhando",
+      "task_atual": "TASK-0009",
       "ultima_acao": {
-        "ts": "2026-08-30T18:17:19.446Z",
-        "type": "part-report",
-        "summary": "PARTE 5 (G0-G2) completa: app-001 Recibo Certo (MEI/autonomo). brief.md + score.md 78/100, zero risco critico. Gates G0/G1/G2 = done. Aguardando A07 no G3."
+        "ts": "2026-08-30T22:32:01.256Z",
+        "type": "task-start",
+        "summary": "ativada no gate G2 (app-001)"
       }
     },
     {

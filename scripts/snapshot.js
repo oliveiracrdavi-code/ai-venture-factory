@@ -27,8 +27,13 @@ function gateOutputOk(gate, p) {
       if (!hasFile(sf)) return false;
       try { return /\b\d{1,3}\s*\/\s*100\b/.test(fs.readFileSync(sf, 'utf8')); } catch (_) { return false; }
     }
-    case 'G3': return hasFile(path.join(L.P.decisionsDir, 'ceo-' + p + '.md')) &&
-      fileHas(path.join(L.P.decisionsDir, 'ceo-' + p + '.md'), 'APROVADO');
+    case 'G3': {
+      var df = path.join(L.P.decisionsDir, 'ceo-' + p + '.md');
+      if (!hasFile(df)) return false;
+      try {
+        return /verdict:.*APROVADO/i.test(fs.readFileSync(df, 'utf8'));
+      } catch (_) { return false; }
+    }
     case 'G4': return hasFile(proj(p, 'blueprint.md'));
     case 'G5': {
       var f = proj(p, 'privilege-checklist.md');
