@@ -18,3 +18,7 @@
 {"ts":"2026-08-30T06:53:20.344Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (0 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
 {"ts":"2026-08-30T06:53:20.479Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (0 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
 {"ts":"2026-08-30T06:53:20.545Z","agent":"publish-state","task":null,"type":"publish","tool":"publish-state.js","summary":"docs/ atualizado (dashboard + estado) (sem push)","model":"system","effort":"n/a"}
+{"ts":"2026-08-30T17:46:01.794Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (0 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
+{"ts":"2026-08-30T17:52:20.867Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (0 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
+{"ts":"2026-08-30T17:52:21.004Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (0 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
+{"ts":"2026-08-30T17:52:21.075Z","agent":"publish-state","task":null,"type":"publish","tool":"publish-state.js","summary":"docs/ atualizado (dashboard + estado) (sem push)","model":"system","effort":"n/a"}

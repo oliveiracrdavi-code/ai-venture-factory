@@ -6,7 +6,7 @@
 <title>AI Venture Factory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <link rel="icon" href="sprites/sprite-A07.svg">
 </head>
@@ -15,17 +15,22 @@
   <aside class="sidebar">
     <div class="brand">
       <img src="sprites/sprite-A07.svg" alt="">
-      <span><b class="rb-glow">AI VENTURE FACTORY</b><small id="side-sub">49 agentes</small></span>
+      <span><b>AI Venture Factory</b><small id="side-sub">49 agentes</small></span>
     </div>
     <nav class="nav" id="nav"></nav>
-    <div class="sidefoot"><span class="dot" id="poll-dot"></span><span id="side-status">—</span></div>
+    <div class="sidefoot">
+      <img src="sprites/sprite-A07.svg" alt="">
+      <div><div class="who"><span class="dot" id="poll-dot"></span>Fundador</div>
+      <div class="st" id="side-status">—</div></div>
+    </div>
   </aside>
   <header class="topbar">
     <div class="crumbs" id="crumbs">Visão geral</div>
     <div class="spacer"></div>
+    <div class="title">Hierarchical AI Multi-Agent Workflow</div>
+    <div class="spacer"></div>
     <input class="search" id="topsearch" placeholder="buscar agente…">
-    <span class="pill" id="topclock">—</span>
-    <img class="sh-avatar" style="width:30px;height:30px" src="sprites/sprite-A07.svg" alt="">
+    <span class="run-ind"><span class="g"></span><span id="run-count">—</span></span>
   </header>
   <main class="main" id="view"><p class="empty">carregando…</p></main>
 </div>

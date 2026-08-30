@@ -122,10 +122,10 @@ function renderNav(active) {
   }).join(''));
 }
 function route() {
-  var h = (location.hash || '#overview').slice(1).split('/');
-  if (h[0] === 'agent' && h[1]) { openAgent(h[1].toUpperCase()); return { view: 'agents' }; }
+  var h = (location.hash || '#workflow').slice(1).split('/');
+  if (h[0] === 'agent' && h[1]) { openAgent(h[1].toUpperCase()); return { view: 'workflow' }; }
   var v = h[0];
-  return { view: TABS.some(function (t) { return t[0] === v; }) ? v : 'overview' };
+  return { view: TABS.some(function (t) { return t[0] === v; }) ? v : 'workflow' };
 }
 
 /* ---------- render ---------- */
@@ -148,9 +148,10 @@ function render() {
 
   wire();
   var pj = Object.keys(state.pipeline.projects || {});
+  var running = state.agents.filter(function (a) { return a.status === 'trabalhando'; }).length;
   put(document.getElementById('side-sub'), state.agents.length + ' agentes · ' + pj.length + ' projeto(s)');
-  var st = document.getElementById('side-status'); if (st) st.textContent = 'atualizado ' + new Date(state.ts).toLocaleTimeString('pt-BR');
-  var tc = document.getElementById('topclock'); if (tc) tc.textContent = new Date(state.ts).toLocaleTimeString('pt-BR');
+  var st = document.getElementById('side-status'); if (st) st.textContent = running + ' ativos · ' + new Date(state.ts).toLocaleTimeString('pt-BR');
+  var rc = document.getElementById('run-count'); if (rc) rc.textContent = running + ' de ' + state.agents.length + ' nós ativos';
 }
 
 /* ---------- overview ---------- */

@@ -24,6 +24,10 @@ var PORT = parseInt(process.argv[2], 10) || 8080;
 
 var DIR_ROUTES = [
   { prefix: '/dashboard/', base: path.join(ROOT, 'dashboard') },
+  // rotas raiz -> dashboard/ (index.html usa caminhos relativos; funciona local e hospedado)
+  { prefix: '/components/', base: path.join(ROOT, 'dashboard', 'components') },
+  { prefix: '/sprites/', base: path.join(ROOT, 'dashboard', 'sprites') },
+  { prefix: '/icons/', base: path.join(ROOT, 'dashboard', 'icons') },
   { prefix: '/company/state/', base: path.join(ROOT, 'company', 'state') },
   { prefix: '/company/metrics/', base: path.join(ROOT, 'company', 'metrics') },
   { prefix: '/company/logs/chats/', base: path.join(ROOT, 'company', 'logs', 'chats') },
@@ -32,6 +36,8 @@ var DIR_ROUTES = [
 var FILE_ROUTES = {
   '/': path.join(ROOT, 'dashboard', 'index.html'),
   '/index.html': path.join(ROOT, 'dashboard', 'index.html'),
+  '/styles.css': path.join(ROOT, 'dashboard', 'styles.css'),
+  '/app.js': path.join(ROOT, 'dashboard', 'app.js'),
   '/company/logs/events.jsonl': path.join(ROOT, 'company', 'logs', 'events.jsonl'),
   '/company/marketing/posts.jsonl': path.join(ROOT, 'company', 'marketing', 'posts.jsonl'),
 };
