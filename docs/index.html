@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Venture Factory — painel</title>
+<link rel="stylesheet" href="/dashboard/styles.css">
+<link rel="icon" href="/dashboard/sprites/sprite-A07.svg">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <img src="/dashboard/sprites/sprite-A07.svg" alt="" class="brand-sprite" width="28" height="28">
+    <span>AI VENTURE FACTORY</span>
+  </div>
+  <nav class="tabs">
+    <a href="#overview" data-tab="overview">Visão geral</a>
+    <a href="#agents" data-tab="agents">Agentes</a>
+    <a href="#finance" data-tab="finance">Financeiro</a>
+    <a href="#security" data-tab="security">Segurança</a>
+  </nav>
+  <div class="status" id="poll-status" title="polling a cada 2,5s">•</div>
+</header>
+
+<main id="view"><p class="loading">carregando…</p></main>
+
+<footer class="footbar">
+  <span id="foot-info">—</span>
+  <span class="muted">servido local · 127.0.0.1:8080 · polling 2,5s</span>
+</footer>
+
+<script src="/dashboard/app.js"></script>
+</body>
+</html>
