@@ -25,17 +25,28 @@ Isso: garante as pastas de estado, gera os 49 sprites se faltarem, roda o
 imprime um resumo. Nao falha se algo ja existir (idempotente).
 
 ## 2. Suba o painel e pegue o link
-Use o preview do proprio Claude Code apontando para a config nomeada
-`ai-venture-factory` (definida em `.claude/launch.json`):
+**Onde tem link clicavel:**
 
-- `preview_start` com `{ "name": "ai-venture-factory" }`
+- **Claude Code local / app Claude Desktop** (roda na maquina do usuario):
+  use `preview_start` com `{ "name": "ai-venture-factory" }` (config em
+  `.claude/launch.json`). Isso sobe `node scripts/server.js` na porta **8080**
+  e devolve a URL. Se `preview_start` nao existir, rode
+  `node scripts/server.js 8080` em background -> `http://127.0.0.1:8080`.
+  **Entregue essa URL ao usuario.**
 
-Isso executa `node scripts/server.js` na porta **8080** e devolve uma URL.
-- Numa sessao **na nuvem / web**, o preview vira um link compartilhavel — **entregue essa URL ao usuario**.
-- Numa sessao **local**, a URL sera `http://127.0.0.1:8080`.
+- **Sessao na nuvem / web (claude.ai/code):** NAO ha como expor a porta 8080
+  para o navegador do usuario — essas sessoes rodam num container sem
+  `preview_start` e sem port-forward/ingress. O server SOBE (responde 200 em
+  `127.0.0.1:8080` dentro do container) mas fica inacessivel de fora.
+  Nesse caso, seja honesto e instrua o usuario a rodar localmente:
 
-Se `preview_start` nao estiver disponivel no ambiente, rode
-`node scripts/server.js 8080` em background e informe `http://127.0.0.1:8080`.
+  ```bash
+  git clone https://github.com/oliveiracrdavi-code/ai-venture-factory
+  cd ai-venture-factory
+  node scripts/activate.js
+  node scripts/server.js 8080
+  # abra http://127.0.0.1:8080
+  ```
 
 ## 3. Reporte
 Responda ao usuario com:
