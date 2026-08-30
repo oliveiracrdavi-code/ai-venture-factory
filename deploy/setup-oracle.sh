@@ -157,9 +157,12 @@ WantedBy=timers.target
 EOF
 
 sudo systemctl daemon-reload
-sudo systemctl enable --now avf-dashboard.service
-sudo systemctl enable --now avf-tunnel.service
-sudo systemctl enable --now avf-tick.timer
+# restart (nao so enable --now): enable --now NAO reinicia servico ja rodando,
+# entao codigo novo do git pull nunca seria carregado sem isto.
+sudo systemctl enable avf-dashboard.service avf-tunnel.service avf-tick.timer
+sudo systemctl restart avf-dashboard.service
+sudo systemctl restart avf-tunnel.service
+sudo systemctl restart avf-tick.timer
 
 ###############################################################################
 say "7/7  aguardando a URL do tunel..."
