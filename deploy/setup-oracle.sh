@@ -140,7 +140,7 @@ Type=oneshot
 User=${USER_NAME}
 WorkingDirectory=${DIR}
 Environment=PATH=${NODE_DIR}:/usr/local/bin:/usr/bin:/bin
-ExecStart=/usr/bin/env bash -c 'git -C ${DIR} pull --ff-only -q || true; ${NODE_BIN} ${DIR}/scripts/orchestrator.js tick || true; ${NODE_BIN} ${DIR}/scripts/publish-state.js ${AVF_GIT_PUSH:+--push} || true'
+ExecStart=/usr/bin/env bash ${DIR}/deploy/vm-tick.sh
 EOF
 
 sudo tee /etc/systemd/system/avf-tick.timer >/dev/null <<EOF
