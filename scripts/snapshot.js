@@ -22,7 +22,11 @@ function gateOutputOk(gate, p) {
   switch (gate) {
     case 'G0': return hasFile(proj(p, 'idea.md'));
     case 'G1': return hasFile(proj(p, 'brief.md'));
-    case 'G2': return hasFile(proj(p, 'score.md')) && fileHas(proj(p, 'score.md'), '/100');
+    case 'G2': {
+      var sf = proj(p, 'score.md');
+      if (!hasFile(sf)) return false;
+      try { return /\b\d{1,3}\s*\/\s*100\b/.test(fs.readFileSync(sf, 'utf8')); } catch (_) { return false; }
+    }
     case 'G3': return hasFile(path.join(L.P.decisionsDir, 'ceo-' + p + '.md')) &&
       fileHas(path.join(L.P.decisionsDir, 'ceo-' + p + '.md'), 'APROVADO');
     case 'G4': return hasFile(proj(p, 'blueprint.md'));

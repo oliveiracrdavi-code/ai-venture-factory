@@ -43,7 +43,8 @@ var PRECOND = {
   },
   G3: function (p) {
     var f = proj('score.md', p);
-    var ok = hasFile(f) && fileHas(f, '/100');
+    var ok = false;
+    try { ok = hasFile(f) && /\b\d{1,3}\s*\/\s*100\b/.test(fs.readFileSync(f, 'utf8')); } catch (_) {}
     return { ok: ok, missing: 'company/projects/' + p + '/score.md com total /100 (G2)' };
   },
   G4: function (p) {

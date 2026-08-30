@@ -1,4 +1,15 @@
 {
-  "generated_at": "2026-08-30T18:09:14.785Z",
-  "projects": {}
+  "generated_at": "2026-08-30T18:17:19.580Z",
+  "projects": {
+    "app-001": {
+      "open": {
+        "critica": 0,
+        "alta": 0,
+        "media": 0,
+        "baixa": 0
+      },
+      "redblue": "nao iniciado",
+      "deps": 0
+    }
+  }
 }

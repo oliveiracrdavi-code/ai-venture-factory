@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T18:09:14.769Z",
+  "generated_at": "2026-08-30T18:17:19.570Z",
   "count": 49,
   "agents": [
     {
@@ -105,9 +105,9 @@
       "status": "idle",
       "task_atual": null,
       "ultima_acao": {
-        "ts": "2026-08-30T06:52:34.923Z",
-        "type": "task-start",
-        "summary": "ativada no gate G0 (app-001)"
+        "ts": "2026-08-30T18:17:19.446Z",
+        "type": "part-report",
+        "summary": "PARTE 5 (G0-G2) completa: app-001 Recibo Certo (MEI/autonomo). brief.md + score.md 78/100, zero risco critico. Gates G0/G1/G2 = done. Aguardando A07 no G3."
       }
     },
     {
