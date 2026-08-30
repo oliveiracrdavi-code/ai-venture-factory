@@ -128,8 +128,8 @@ window.WF = (function () {
     var glyph = n.id === 'WH00' ? '⚡' : n.id === 'SET' ? '≡' : '✈';
     return '<g class="n8-node n8-io" data-node="' + n.id + '" transform="translate(' + n.x + ',' + n.y + ')">' +
       '<text class="nid" x="' + (SQ + 8) + '" y="12">' + esc(n.id) + '</text>' +
-      '<rect class="sq" width="' + SQ + '" height="' + SQ + '" rx="14"/>' +
-      '<rect class="tint" x="12" y="12" width="' + (SQ - 24) + '" height="' + (SQ - 24) + '" rx="10" fill="' + c + '"/>' +
+      '<rect class="sq" width="' + SQ + '" height="' + SQ + '" rx="16"/>' +
+      '<rect class="tint" x="12" y="12" width="' + (SQ - 24) + '" height="' + (SQ - 24) + '" rx="12" fill="' + c + '"/>' +
       '<text x="' + (SQ / 2) + '" y="' + (SQ / 2 + 8) + '" text-anchor="middle" font-size="20" fill="' + c + '">' + glyph + '</text>' +
       '<circle class="n8-port" cx="' + (SQ / 2) + '" cy="0" r="3.5"/>' +
       '<circle class="n8-port" cx="' + (SQ / 2) + '" cy="' + SQ + '" r="3.5"/>' +
@@ -150,8 +150,8 @@ window.WF = (function () {
     return '<g class="n8-node s-' + esc(st) + (p.isLead ? ' n8-lead' : '') + '" data-node="' + esc(id) + '" transform="translate(' + p.x + ',' + p.y + ')">' +
       leadRing +
       '<text class="nid" x="' + (SQ + 8) + '" y="12">' + esc(id) + '</text>' +
-      '<rect class="sq" width="' + SQ + '" height="' + SQ + '" rx="14"/>' +
-      '<rect class="tint" x="11" y="11" width="' + (SQ - 22) + '" height="' + (SQ - 22) + '" rx="10" fill="' + c + '"/>' +
+      '<rect class="sq" width="' + SQ + '" height="' + SQ + '" rx="16"/>' +
+      '<rect class="tint" x="11" y="11" width="' + (SQ - 22) + '" height="' + (SQ - 22) + '" rx="12" fill="' + c + '"/>' +
       '<image href="' + window.AVF.SPR(id) + '" x="' + ((SQ - ICON) / 2) + '" y="' + ((SQ - ICON) / 2) + '" width="' + ICON + '" height="' + ICON + '"/>' +
       '<circle class="n8-port" cx="' + (SQ / 2) + '" cy="0" r="3.5"/>' +
       '<circle class="n8-port" cx="' + (SQ / 2) + '" cy="' + SQ + '" r="3.5"/>' +
@@ -224,14 +224,14 @@ window.WF = (function () {
   function build(L) {
     var secs = [];
     L.sections.forEach(function (s) {
-      secs.push('<g class="n8-sec b' + (s.ci + 1) + '"><rect x="' + s.x + '" y="' + s.y + '" width="' + s.w + '" height="' + s.h + '" rx="12"/>' +
+      secs.push('<g class="n8-sec b' + (s.ci + 1) + '"><rect x="' + s.x + '" y="' + s.y + '" width="' + s.w + '" height="' + s.h + '" rx="16"/>' +
         '<text x="' + (s.x + 12) + '" y="' + (s.y + 15) + '">BLOCO ' + (s.ci + 1) + ' · ' + esc(BLOCOS[s.ci].toUpperCase()) + '</text></g>');
     });
     var a32 = L.pos.A32, a33 = L.pos.A33;
     if (a32 && a33) {
       var rx = Math.min(a32.x, a33.x) - 10, ry = Math.min(a32.y, a33.y) - 10;
       var rw = Math.max(a32.x, a33.x) + SQ + 10 - rx, rh = Math.max(a32.y, a33.y) + SQ + 40 - ry;
-      secs.push('<g class="n8-redbox"><rect x="' + rx + '" y="' + ry + '" width="' + rw + '" height="' + rh + '" rx="10"/>' +
+      secs.push('<g class="n8-redbox"><rect x="' + rx + '" y="' + ry + '" width="' + rw + '" height="' + rh + '" rx="14"/>' +
         '<text x="' + (rx + 6) + '" y="' + (ry - 5) + '">⚔ CICLO RED → BLUE</text></g>');
     }
     var nodes = [];

@@ -1,28 +1,30 @@
 /* AI Venture Factory — dashboard. Canvas n8n é o ground-truth visual.
    shadcn portado = .sh-* · react-bits portado = .rb-* · canvas n8n = .n8-* */
 :root{
-  /* superfícies (roxo-escuro do n8n) */
-  --bg-canvas:#1e1b2e; --bg-canvas-dot:#332e4a;
-  --bg-app:#151221; --bg-chrome:#1a1728; --bg-panel:#221e33;
-  --bg-node:#2a2640; --bg-hover:#312c49; --bg-active:#3a3454;
-  /* bordas */
-  --border:#3a3450; --border-soft:#2c2740; --border-focus:#7c5cff;
+  /* superfícies -- quase-preto com leve temperatura roxa (nunca preto puro,
+     nunca cinza medio -- regra 1 do padrao de design, ver company/design/) */
+  --bg-canvas:#17141f; --bg-canvas-dot:#2a2640;
+  --bg-app:#110f1a; --bg-chrome:#151220; --bg-panel:#1c1830;
+  --bg-node:#241f38; --bg-hover:#2b2542; --bg-active:#332c4d;
+  /* bordas -- 1px quase invisiveis */
+  --border:#332c48; --border-soft:#241f36; --border-focus:#7c5cff;
   /* texto */
   --text-1:#e9e7f2; --text-2:#a09bb8; --text-3:#6f6a87; --text-disabled:#524d67;
-  /* status */
+  /* status semantico (nao decorativo -- ok/erro/aviso, universais de UI) */
   --accent:#7c5cff; --accent-2:#a78bfa; --ok:#22c55e; --warn:#f59e0b;
-  --err:#ef4444; --idle:#6f6a87; --info:#3b82f6; --exec:#22c55e; --save:#e11d48;
+  --err:#ef4444; --idle:#6f6a87; --info:#3b82f6;
   --accent-ink:#120c26;
-  /* cor por bloco (ícone do nó) */
-  --b1:#7c5cff; --b2:#f59e0b; --b3:#3b82f6; --b4:#f97316;
-  --b5:#06b6d4; --b6:#ef4444; --b7:#22c55e; --b8:#ec4899;
-  /* seções */
-  --section-b1:rgba(124,92,255,.10); --section-b2:rgba(245,158,11,.10);
-  --section-b3:rgba(59,130,246,.10); --section-b4:rgba(249,115,22,.10);
-  --section-b5:rgba(6,182,212,.10);  --section-b6:rgba(239,68,68,.12);
-  --section-b7:rgba(34,197,94,.10);  --section-b8:rgba(236,72,153,.10);
-  /* raio / espaço */
-  --radius-sm:4px; --radius-md:8px; --radius-lg:12px; --radius-node:14px; --radius-pill:999px;
+  /* cor por bloco -- categorizacao discreta, NUNCA compete com --accent
+     (regra 2: uma unica cor de destaque, resto e quase-grayscale) */
+  --b1:#8b7fc9; --b2:#c9a56b; --b3:#6f93c9; --b4:#c98f6b;
+  --b5:#6bc0c9; --b6:#c97070; --b7:#7fc98f; --b8:#c383ae;
+  /* secoes */
+  --section-b1:rgba(139,127,201,.08); --section-b2:rgba(201,165,107,.08);
+  --section-b3:rgba(111,147,201,.08); --section-b4:rgba(201,143,107,.08);
+  --section-b5:rgba(107,192,201,.08); --section-b6:rgba(201,112,112,.10);
+  --section-b7:rgba(127,201,143,.08); --section-b8:rgba(195,131,174,.08);
+  /* raio generoso (16-28px em escala -- regra 3) / espaco */
+  --radius-sm:6px; --radius-md:10px; --radius-lg:18px; --radius-node:16px; --radius-pill:999px;
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px;
   /* tipografia */
   --font-sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
@@ -77,10 +79,12 @@ img{image-rendering:pixelated}
 .topbar .title{font-size:var(--text-md);font-weight:600}
 .topbar input.search{background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-md);color:var(--text-1);padding:6px 10px;font-size:var(--text-sm);width:180px}
 .topbar input.search:focus{outline:none;border-color:var(--border-focus)}
-.btn-exec{display:flex;align-items:center;gap:6px;background:var(--exec);color:#06210f;border:0;border-radius:var(--radius-md);padding:6px 14px;font-size:var(--text-sm);font-weight:600;cursor:pointer}
+.btn-exec{display:flex;align-items:center;gap:6px;background:var(--ok);color:#06210f;border:0;border-radius:var(--radius-pill);padding:6px 16px;font-size:var(--text-sm);font-weight:600;cursor:pointer;transition:filter var(--t)}
 .btn-exec:hover{filter:brightness(1.08)}
-.btn-save{display:flex;align-items:center;gap:6px;background:var(--save);color:#fff;border:0;border-radius:var(--radius-md);padding:6px 14px;font-size:var(--text-sm);font-weight:600;cursor:pointer}
-.saved-txt{font-size:var(--text-sm);color:var(--text-3)}
+/* status "Saved" -- indicador quieto, nao um segundo botao competindo com o
+   toggle de energia (regra: so 1 botao de maior peso visual por tela) */
+.saved-txt{display:flex;align-items:center;gap:6px;font-size:var(--text-sm);color:var(--text-3)}
+.saved-txt::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ok);opacity:.7}
 
 /* ---------- shadcn ports ---------- */
 .sh-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-md)}
@@ -145,9 +149,11 @@ img{image-rendering:pixelated}
 .sev .critica .n{color:var(--err)} .sev .alta .n{color:var(--warn)} .sev .media .n{color:var(--info)} .sev .baixa .n{color:var(--text-3)}
 
 /* ---------- react-bits ports ---------- */
+/* uma unica cor de destaque, mesmo no fundo decorativo (regra 2) --
+   os dois blobs usam o MESMO tom (--accent), so a intensidade muda */
 .rb-aurora{position:absolute;inset:0;pointer-events:none;background:
-  radial-gradient(circle at 18% 26%,rgba(124,92,255,.16),transparent 52%),
-  radial-gradient(circle at 84% 70%,rgba(236,72,153,.10),transparent 55%);
+  radial-gradient(circle at 18% 26%,rgba(124,92,255,.13),transparent 52%),
+  radial-gradient(circle at 84% 70%,rgba(124,92,255,.07),transparent 55%);
   animation:rb-aurora 22s ease-in-out infinite}
 @keyframes rb-aurora{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(12px,-10px) scale(1.08)}}
 .rb-spotlight{position:relative;overflow:hidden}
@@ -288,3 +294,7 @@ img{image-rendering:pixelated}
 .n8-lead .nname{font-weight:700}
 .n8-ctl button#wf-lock{width:auto;padding:0 10px;font-size:var(--text-xs);white-space:nowrap}
 .n8-ctl button#wf-lock.on{background:var(--warn);border-color:var(--warn);color:#2a1a00}
+
+/* saudacao pessoal na Visao Geral (regra 11 do padrao de design) */
+.ov-greet{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-5);position:relative}
+.ov-greet img{width:44px;height:44px;border-radius:var(--radius-node);border:1px solid var(--border)}

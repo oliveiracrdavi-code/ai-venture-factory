@@ -157,6 +157,8 @@ function render() {
   var lbl = (TABS.filter(function (t) { return t[0] === r.view; })[0] || ['', 'Visão geral'])[1];
   put(document.getElementById('crumbs'), '<b>' + esc(lbl) + '</b>');
 
+  if (r.view !== 'workflow') { var wfTip = document.getElementById('wf-tip'); if (wfTip) wfTip.style.display = 'none'; }
+
   if (r.view === 'workflow') window.WF.render(main);
   else if (r.view === 'chat') window.AgentChat.render(main);
   else if (r.view === 'human') window.HumanChat.render(main);
@@ -222,7 +224,11 @@ function viewOverview() {
       return '<div class="tile"><div class="k">' + esc(t[0]) + '</div><div class="v"' + (num ? ' data-cu="' + t[1] + '" data-pre="' + (t[2] || '') + '" data-suf="' + (t[3] || '') + '"' : '') + '>' + (num ? (t[2] || '') + t[1] + (t[3] || '') : '—') + '</div></div>';
     }).join('');
 
-  return '<div class="rb-aurora"></div><h1 class="h1">Visão geral</h1>' +
+  var h = new Date().getHours();
+  var greet = h < 5 ? 'Boa madrugada' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  return '<div class="rb-aurora"></div>' +
+    '<div class="ov-greet"><img src="' + SPR('A07') + '" alt=""><div><h1 class="h1" style="margin:0">' + greet + ', Fundador</h1>' +
+    '<p class="muted" style="margin:2px 0 0">Visão geral da AI Venture Factory</p></div></div>' +
     '<div class="sh-card"><div class="sh-card-head">Pipeline por gate</div><div class="sh-card-body">' + pipe + '</div></div>' +
     '<div class="row"><div class="sh-card"><div class="sh-card-head">Agentes ativos agora</div><div class="sh-card-body">' + activeH + '</div></div>' +
     '<div class="sh-card"><div class="sh-card-head">Bloqueios</div><div class="sh-card-body">' + blockedH + '</div></div></div>' +
