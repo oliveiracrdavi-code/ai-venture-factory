@@ -31,7 +31,7 @@
   --glow-ok:0 0 10px rgba(74,222,128,.4); --glow-warn:0 0 10px rgba(250,204,21,.4);
   /* animação */
   --t:200ms cubic-bezier(.4,0,.2,1); --t-fast:100ms cubic-bezier(.4,0,.2,1);
-  --t-spring:300ms cubic-bezier(.34,1.56,.64,1);
+  --t-spring:300ms cubic-bezier(.22,1,.36,1);
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
