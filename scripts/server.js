@@ -116,6 +116,128 @@ function apiTick(res) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Chatbot humano
+// ---------------------------------------------------------------------------
+var HUMAN_CHAT = path.join(L.P.logsDir, 'human-chat.jsonl');
+var ANN_DIR = path.join(ROOT, 'company', 'announcements');
+var APPROVALS = path.join(L.P.stateDir, 'approvals.json');
+
+function appendHumanChat(msg) {
+  try {
+    fs.mkdirSync(L.P.logsDir, { recursive: true });
+    fs.appendFileSync(HUMAN_CHAT, JSON.stringify(L.maskDeep(msg)) + '\n');
+  } catch (_) {}
+}
+
+/** roteia o texto: menção AXX -> aquele agente; senão A08 (chief-of-staff). */
+function routeAgent(text) {
+  var m = String(text).toUpperCase().match(/\bA([0-4]\d)\b/);
+  if (m) {
+    var n = Number(m[1]);
+    if (n >= 1 && n <= 49) return 'A' + m[1];
+  }
+  return 'A08';
+}
+
+function writeTask(agent, input, kind) {
+  var id = L.nextTaskId();
+  var today = new Date().toISOString().slice(0, 10);
+  var safe = L.maskSecrets(String(input)).replace(/\r/g, '').replace(/^---\s*$/gm, '- - -').slice(0, 4000);
+  var md = [
+    '---', 'id: ' + id, 'agent: ' + agent, 'status: queued', 'priority: 99',
+    'gate: G0', 'project: app-001', 'depends_on: []',
+    'created: ' + today, 'updated: ' + today, '---', '',
+    '# ' + id + ' - ' + (kind || 'instrucao humana') + ' para ' + agent, '',
+    '## Objetivo', 'Mensagem do fundador via dashboard (prioridade maxima).', '',
+    '## Input', safe, '',
+    '## Criterio de aceite',
+    '- [ ] responder/atender a mensagem acima',
+    '- [ ] registrar a resposta em company/logs/human-chat.jsonl (from: <agente>, to: human)',
+    '- [ ] acao registrada em company/logs/events.jsonl (com model e effort)', '',
+  ].join('\n');
+  fs.writeFileSync(path.join(L.P.tasksDir, id + '.md'), md);
+  return id;
+}
+
+// POST /api/human-message  { text }
+function apiHumanMessage(body, res) {
+  var data = {};
+  try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
+  var text = String(data.text || '').trim();
+  if (!text) return sendJson(res, 400, { error: 'texto vazio' });
+  if (text.length > 8000) text = text.slice(0, 8000);
+
+  var isAnn = /^\s*(📢|\[?an[uú]ncio\]?[:\s])/i.test(text);
+  appendHumanChat({ ts: new Date().toISOString(), from: 'human', to: isAnn ? 'todos' : routeAgent(text), content: text, task_ref: null });
+
+  if (isAnn) {
+    fs.mkdirSync(ANN_DIR, { recursive: true });
+    var day = new Date().toISOString().slice(0, 10);
+    var file = path.join(ANN_DIR, day + '.md');
+    var line = '- ' + new Date().toISOString() + ' — ' + L.maskSecrets(text.replace(/^\s*📢\s*/, '')) + '\n';
+    if (!fs.existsSync(file)) fs.writeFileSync(file, '# Anuncios — ' + day + '\n\n');
+    fs.appendFileSync(file, line);
+    L.appendEvent({ agent: 'founder', task: null, type: 'announcement', tool: 'dashboard',
+      summary: text.slice(0, 180), model: 'human', effort: 'n/a' });
+    appendHumanChat({ ts: new Date().toISOString(), from: 'system', to: 'human', type: 'system',
+      content: 'Anuncio registrado em company/announcements/' + day + '.md — todos os agentes leem no proximo tick.' });
+    return sendJson(res, 200, { ok: true, kind: 'announcement', file: 'company/announcements/' + day + '.md' });
+  }
+
+  var agent = routeAgent(text);
+  var id;
+  try { id = writeTask(agent, text, 'mensagem humana'); }
+  catch (e) { return sendJson(res, 500, { error: 'falha ao gravar TASK' }); }
+
+  L.appendEvent({ agent: agent, task: id, type: 'human-instruction', tool: 'dashboard',
+    summary: 'mensagem humana: ' + text.slice(0, 160), model: 'human', effort: 'n/a' });
+  appendHumanChat({ ts: new Date().toISOString(), from: 'system', to: 'human', type: 'system',
+    content: 'Roteado para ' + agent + ' como ' + id + ' (priority 99). A resposta aparece aqui quando o agente processar.', task_ref: id });
+
+  cp.spawnSync(process.execPath, [path.join(__dirname, 'orchestrator.js'), 'tick'], { cwd: ROOT, timeout: 20000 });
+  sendJson(res, 200, { ok: true, kind: 'message', agent: agent, task: id });
+}
+
+// POST /api/approve  { id, action: approve|deny }
+function apiApprove(body, res) {
+  var data = {};
+  try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
+  var id = String(data.id || '').slice(0, 64);
+  var action = data.action === 'approve' ? 'approve' : 'deny';
+  if (!id) return sendJson(res, 400, { error: 'id vazio' });
+
+  var st = L.readJSON(APPROVALS, { pending: [], history: [] });
+  if (!st.pending) st.pending = [];
+  if (!st.history) st.history = [];
+  var item = null;
+  st.pending = st.pending.filter(function (p) { if (p.id === id) { item = p; return false; } return true; });
+  st.history.push({ id: id, action: action, ts: new Date().toISOString(), request: item ? item.request : null, agent: item ? item.agent : null });
+  L.writeJSON(APPROVALS, st);
+
+  L.appendEvent({ agent: (item && item.agent) || 'founder', task: (item && item.task) || null,
+    type: 'human-approval', tool: 'dashboard',
+    summary: action.toUpperCase() + ' — ' + (item ? item.request : id), model: 'human', effort: 'n/a' });
+  appendHumanChat({ ts: new Date().toISOString(), from: 'human', to: (item && item.agent) || 'todos',
+    content: (action === 'approve' ? 'APROVADO' : 'NEGADO') + ': ' + (item ? item.request : id), task_ref: item && item.task });
+  sendJson(res, 200, { ok: true, id: id, action: action });
+}
+
+// POST /api/agent-action { agent, action }
+function apiAgentAction(body, res) {
+  var data = {};
+  try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
+  var agent = String(data.agent || '').toUpperCase();
+  var action = String(data.action || '').slice(0, 200);
+  if (!/^A\d{2}$/.test(agent) || !action) return sendJson(res, 400, { error: 'agent/action invalido' });
+  var id;
+  try { id = writeTask('A08', 'Pedido do fundador sobre ' + agent + ': ' + action + '.', 'acao de coordenacao'); }
+  catch (e) { return sendJson(res, 500, { error: 'falha ao gravar TASK' }); }
+  L.appendEvent({ agent: 'A08', task: id, type: 'human-instruction', tool: 'dashboard',
+    summary: action + ' (' + agent + ')', model: 'human', effort: 'n/a' });
+  sendJson(res, 200, { ok: true, task: id });
+}
+
 var server = http.createServer(function (req, res) {
   var urlPath;
   try { urlPath = decodeURIComponent((req.url || '/').split('?')[0].split('#')[0]); }
@@ -126,11 +248,15 @@ var server = http.createServer(function (req, res) {
   }
 
   if (req.method === 'POST') {
-    if (urlPath !== '/api/task' && urlPath !== '/api/tick') return send(res, 403, '403 Forbidden');
+    var POST_ROUTES = ['/api/task', '/api/tick', '/api/human-message', '/api/approve', '/api/agent-action'];
+    if (POST_ROUTES.indexOf(urlPath) === -1) return send(res, 403, '403 Forbidden');
     var chunks = '';
     req.on('data', function (c) { chunks += c; if (chunks.length > 20000) req.destroy(); });
     req.on('end', function () {
       if (urlPath === '/api/task') return apiCreateTask(chunks, res);
+      if (urlPath === '/api/human-message') return apiHumanMessage(chunks, res);
+      if (urlPath === '/api/approve') return apiApprove(chunks, res);
+      if (urlPath === '/api/agent-action') return apiAgentAction(chunks, res);
       return apiTick(res);
     });
     return;

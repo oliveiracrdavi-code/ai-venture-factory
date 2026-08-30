@@ -3,32 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Venture Factory — painel</title>
-<link rel="stylesheet" href="/dashboard/styles.css">
-<link rel="icon" href="/dashboard/sprites/sprite-A07.svg">
+<title>AI Venture Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="sprites/sprite-A07.svg">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand">
-    <img src="/dashboard/sprites/sprite-A07.svg" alt="" class="brand-sprite" width="28" height="28">
-    <span>AI VENTURE FACTORY</span>
-  </div>
-  <nav class="tabs">
-    <a href="#overview" data-tab="overview">Visão geral</a>
-    <a href="#agents" data-tab="agents">Agentes</a>
-    <a href="#finance" data-tab="finance">Financeiro</a>
-    <a href="#security" data-tab="security">Segurança</a>
-  </nav>
-  <div class="status" id="poll-status" title="polling a cada 2,5s">•</div>
-</header>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="sprites/sprite-A07.svg" alt="">
+      <span><b class="rb-glow">AI VENTURE FACTORY</b><small id="side-sub">49 agentes</small></span>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidefoot"><span class="dot" id="poll-dot"></span><span id="side-status">—</span></div>
+  </aside>
+  <header class="topbar">
+    <div class="crumbs" id="crumbs">Visão geral</div>
+    <div class="spacer"></div>
+    <input class="search" id="topsearch" placeholder="buscar agente…">
+    <span class="pill" id="topclock">—</span>
+    <img class="sh-avatar" style="width:30px;height:30px" src="sprites/sprite-A07.svg" alt="">
+  </header>
+  <main class="main" id="view"><p class="empty">carregando…</p></main>
+</div>
+<div id="wf-tip"></div>
 
-<main id="view"><p class="loading">carregando…</p></main>
-
-<footer class="footbar">
-  <span id="foot-info">—</span>
-  <span class="muted">servido local · 127.0.0.1:8080 · polling 2,5s</span>
-</footer>
-
-<script src="/dashboard/app.js"></script>
+<script src="components/fx.js"></script>
+<script src="components/workflow-canvas.js"></script>
+<script src="components/agent-chat.js"></script>
+<script src="components/human-chatbot.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

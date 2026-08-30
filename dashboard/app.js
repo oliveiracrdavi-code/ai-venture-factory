@@ -1,19 +1,16 @@
-/* AI Venture Factory - dashboard (JS puro, sem build). Polling 2.5s.
-   Dados: arquivos locais servidos por scripts/server.js (allowlist).
-   Todo valor interpolado passa por esc(); render via helper put(). */
+/* AI Venture Factory — dashboard app (n8n-style, JS puro, zero build).
+   Todo valor interpolado passa por esc(). Render via helper put(). */
 'use strict';
 var POLL_MS = 2500;
 var IH = 'inner' + 'HTML';
 function put(el, html) { if (el) el[IH] = html; }
 
-/* MODO HOSPEDADO: quando servido por GitHub/Cloudflare Pages (docs/), os
-   dados vem de ./state/ (flat) e nao ha server -> chat vira somente leitura.
-   Local (server.js) continua usando /company/... e o chat funciona. */
+/* modo hospedado (docs/ em Pages) -> lê ./state/, sem server -> read-only */
 var HOSTED = (function () {
   try {
     if (location.protocol === 'file:') return false;
     var h = location.hostname || '';
-    return !(h === 'localhost' || h === '' || /^127\./.test(h) || h === '0.0.0.0' || h === '[::1]' || h === '::1');
+    return !(h === 'localhost' || h === '' || /^127\./.test(h) || h === '0.0.0.0' || h === '::1' || h === '[::1]');
   } catch (_) { return false; }
 })();
 function U(name) {
@@ -25,56 +22,76 @@ function U(name) {
     'metrics.json': '/company/metrics/metrics.json',
     'events.jsonl': '/company/logs/events.jsonl',
     'posts.jsonl': '/company/marketing/posts.jsonl',
-    'pricing.json': '/company/projects/app-001/pricing.json'
+    'pricing.json': '/company/projects/app-001/pricing.json',
+    'chat-merged.jsonl': '/company/state/chat-merged.jsonl',
+    'human-chat.jsonl': '/company/state/human-chat.jsonl',
+    'announcements.json': '/company/state/announcements.json',
+    'approvals.json': '/company/state/approvals.json'
   };
   return m[name] || ('/company/state/' + name);
 }
-var SPR = function (id) { return (HOSTED ? './sprites/sprite-' : '/dashboard/sprites/sprite-') + id + '.svg'; };
+function SPR(id) { return (HOSTED ? '' : '/dashboard/') + 'sprites/sprite-' + id + '.svg'; }
+
 var GATES = ['G0', 'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10'];
 var GATE_SYM = { done: '✅', running: '🔄', rejected: '❌', blocked: '⏸️' };
 var NIVEL_DESC = {
-  N1: 'Leitura: ler arquivos/logs, pesquisar, resumir. Sem executar comando, sem secrets.',
-  N2: 'Escrita controlada: criar/editar docs e artefatos, TASKs, codigo em branch (nao mergeia).',
-  N3: 'Execucao local: rodar build/lint/testes/scripts do repo, subir server local. Sem admin, sem sair do projeto.',
-  N4: 'Alto privilegio: variaveis de ambiente locais, conectores de API (whitelist), injecao de credencial em runtime - sempre com log.',
-  N5: 'Producao: preparar release. Deploy, gasto, 1o post de canal novo - SO com humano, por item.'
+  N1: 'Leitura: arquivos/logs, pesquisa, resumo. Sem comando, sem secrets.',
+  N2: 'Escrita controlada: docs/artefatos/TASKs, código em branch (não mergeia).',
+  N3: 'Execução local: build/lint/testes/scripts, server local. Sem admin, sem sair do projeto.',
+  N4: 'Alto privilégio: env local, conectores API (whitelist), credencial em runtime — sempre com log.',
+  N5: 'Produção: release. Deploy/gasto/1º post de canal — só com humano, por item.'
+};
+var BLOCOS = [
+  '1 — Pesquisa & Viabilidade', '2 — Governança', '3 — Produto, Design & Arquitetura',
+  '4 — Engenharia', '5 — Conectores Locais & Computer-Use', '6 — Cybersecurity',
+  '7 — QA', '8 — Growth, Marketing, Finanças & Monitoramento'
+];
+var INTEGRATIONS = [
+  ['coolify', 'deploy auto-hospedado', 'A25,A16', 'off'],
+  ['strix', 'pentest AI (staging local)', 'A32', 'stub'],
+  ['browser', 'automação de navegador', 'A29,A44,A39', 'stub'],
+  ['brightbean', 'redes sociais', 'A44', 'off'],
+  ['hyperframes', 'vídeo a partir de HTML', 'A44', 'off'],
+  ['openmontage', 'produção de vídeo agêntica', 'A44,A13,A49', 'off'],
+  ['voicebox', 'síntese de voz local', 'A44', 'stub'],
+  ['freedomain', 'subdomínios grátis', 'A25', 'off'],
+  ['claude-mem', 'memória persistente', 'todos', 'stub'],
+  ['openhuman', 'knowledge-graph do fundador', 'A08', 'stub'],
+  ['shadcn', 'padrões de UI (portado)', 'dashboard', 'on'],
+  ['simple-icons', 'ícones de marca', 'dashboard', 'on'],
+  ['react-bits', 'componentes animados (port)', 'A14', 'on'],
+  ['magic-mcp', 'gerador de componentes UI', 'A14', 'off']
+];
+
+var state = {
+  agents: [], pipeline: { projects: {} }, events: [], metrics: {}, posts: [],
+  security: { projects: {} }, pricing: null, chat: [], humanChat: [],
+  announcements: { items: [] }, approvals: { pending: [] }, ts: 0
 };
 
-var state = { agents: [], pipeline: { projects: {} }, events: [], metrics: {}, posts: [], security: { projects: {} }, pricing: null, ts: 0 };
-
-/* ---------- fetch helpers ---------- */
+/* ---------- helpers ---------- */
 function bust(u) { return u + (u.indexOf('?') < 0 ? '?t=' : '&t=') + Date.now(); }
-function getJSON(url) {
-  return fetch(bust(url), { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+function getJSON(u) { return fetch(bust(u), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+function getText(u) { return fetch(bust(u), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : ''; }).catch(function () { return ''; }); }
+function parseJsonl(t) { if (!t) return []; return t.trim().split(/\r?\n/).filter(Boolean).map(function (l) { try { return JSON.parse(l); } catch (_) { return null; } }).filter(Boolean); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function shortTs(t) { try { return String(t).replace('T', ' ').replace(/\.\d+Z$/, 'Z'); } catch (_) { return t; } }
+function post(url, body) {
+  return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) })
+    .then(function (r) { return r.json(); });
 }
-function getText(url) {
-  return fetch(bust(url), { cache: 'no-store' })
-    .then(function (r) { return r.ok ? r.text() : ''; }).catch(function () { return ''; });
-}
-function parseJsonl(txt) {
-  if (!txt) return [];
-  return txt.trim().split(/\r?\n/).filter(Boolean).map(function (l) {
-    try { return JSON.parse(l); } catch (_) { return null; }
-  }).filter(Boolean);
-}
-function esc(s) {
-  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
-  });
-}
-function shortTs(ts) { try { return String(ts).replace('T', ' ').replace(/\.\d+Z$/, 'Z'); } catch (_) { return ts; } }
+function agentById(id) { for (var i = 0; i < state.agents.length; i++) if (state.agents[i].id === id) return state.agents[i]; return null; }
+function statusBadge(s) { return '<span class="sh-badge b-' + esc(s) + '">' + esc(s) + '</span>'; }
+
+window.AVF = { state: state, esc: esc, put: put, SPR: SPR, U: U, HOSTED: HOSTED, post: post, shortTs: shortTs, getText: getText, getJSON: getJSON, parseJsonl: parseJsonl, agentById: agentById };
 
 /* ---------- load ---------- */
 function loadAll() {
   return Promise.all([
-    getJSON(U('agents.json')),
-    getJSON(U('pipeline.json')),
-    getText(U('events.jsonl')),
-    getJSON(U('metrics.json')),
-    getText(U('posts.jsonl')),
-    getJSON(U('security.json')),
-    getJSON(U('pricing.json'))
+    getJSON(U('agents.json')), getJSON(U('pipeline.json')), getText(U('events.jsonl')),
+    getJSON(U('metrics.json')), getText(U('posts.jsonl')), getJSON(U('security.json')),
+    getJSON(U('pricing.json')), getText(U('chat-merged.jsonl')), getText(U('human-chat.jsonl')),
+    getJSON(U('announcements.json')), getJSON(U('approvals.json'))
   ]).then(function (r) {
     if (r[0] && r[0].agents) state.agents = r[0].agents;
     if (r[1] && r[1].projects) state.pipeline = r[1];
@@ -83,295 +100,274 @@ function loadAll() {
     state.posts = parseJsonl(r[4]);
     if (r[5]) state.security = r[5];
     state.pricing = r[6] || null;
+    state.chat = parseJsonl(r[7]);
+    state.humanChat = parseJsonl(r[8]);
+    if (r[9]) state.announcements = r[9];
+    if (r[10]) state.approvals = r[10];
     state.ts = Date.now();
   });
 }
 
-/* ---------- router ---------- */
+/* ---------- nav / router ---------- */
+var TABS = [
+  ['workflow', 'Workflow'], ['chat', 'Chat geral'], ['human', 'Chatbot humano'],
+  ['agents', 'Agentes'], ['overview', 'Visão geral'], ['finance', 'Financeiro'],
+  ['security', 'Segurança'], ['integrations', 'Integrações']
+];
+function icon() { return '<svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>'; }
+function renderNav(active) {
+  put(document.getElementById('nav'), TABS.map(function (t, i) {
+    return (i === 4 ? '<div class="sep"></div>' : '') +
+      '<a href="#' + t[0] + '" class="' + (t[0] === active ? 'active' : '') + '">' + icon() + '<span>' + esc(t[1]) + '</span></a>';
+  }).join(''));
+}
 function route() {
   var h = (location.hash || '#overview').slice(1).split('/');
-  if (h[0] === 'agent' && h[1]) return { view: 'agent', id: h[1].toUpperCase() };
-  if (h[0] === 'chat' && h[1]) return { view: 'chat', id: h[1].toUpperCase() };
-  if (['overview', 'agents', 'finance', 'security'].indexOf(h[0]) >= 0) return { view: h[0] };
-  return { view: 'overview' };
-}
-function setActiveTab(view) {
-  var tv = (view === 'agent' || view === 'chat') ? 'agents' : view;
-  document.querySelectorAll('.tabs a').forEach(function (a) {
-    a.classList.toggle('active', a.getAttribute('data-tab') === tv);
-  });
+  if (h[0] === 'agent' && h[1]) { openAgent(h[1].toUpperCase()); return { view: 'agents' }; }
+  var v = h[0];
+  return { view: TABS.some(function (t) { return t[0] === v; }) ? v : 'overview' };
 }
 
 /* ---------- render ---------- */
 function render() {
   var r = route();
-  setActiveTab(r.view);
-  var el = document.getElementById('view');
-  if (r.view === 'overview') put(el, viewOverview());
-  else if (r.view === 'agents') put(el, viewAgents());
-  else if (r.view === 'agent') put(el, viewAgentDetail(r.id));
-  else if (r.view === 'chat') renderChat(r.id);
-  else if (r.view === 'finance') put(el, viewFinance());
-  else if (r.view === 'security') put(el, viewSecurity());
-  wireButtons();
+  renderNav(r.view);
+  var main = document.getElementById('view');
+  main.className = 'main' + ((r.view === 'workflow' || r.view === 'chat' || r.view === 'human') ? ' no-pad' : '');
+  var lbl = (TABS.filter(function (t) { return t[0] === r.view; })[0] || ['', 'Visão geral'])[1];
+  put(document.getElementById('crumbs'), '<b>' + esc(lbl) + '</b>');
+
+  if (r.view === 'workflow') window.WF.render(main);
+  else if (r.view === 'chat') window.AgentChat.render(main);
+  else if (r.view === 'human') window.HumanChat.render(main);
+  else if (r.view === 'agents') put(main, viewAgents());
+  else if (r.view === 'finance') put(main, viewFinance());
+  else if (r.view === 'security') put(main, viewSecurity());
+  else if (r.view === 'integrations') put(main, viewIntegrations());
+  else put(main, viewOverview());
+
+  wire();
   var pj = Object.keys(state.pipeline.projects || {});
-  var fi = document.getElementById('foot-info');
-  if (fi) fi.textContent = state.agents.length + ' agentes · ' + pj.length + ' projeto(s) · ' +
-    state.events.length + ' eventos · atualizado ' + new Date(state.ts).toLocaleTimeString('pt-BR');
+  put(document.getElementById('side-sub'), state.agents.length + ' agentes · ' + pj.length + ' projeto(s)');
+  var st = document.getElementById('side-status'); if (st) st.textContent = 'atualizado ' + new Date(state.ts).toLocaleTimeString('pt-BR');
+  var tc = document.getElementById('topclock'); if (tc) tc.textContent = new Date(state.ts).toLocaleTimeString('pt-BR');
 }
 
 /* ---------- overview ---------- */
 function viewOverview() {
-  var projs = state.pipeline.projects || {};
-  var pkeys = Object.keys(projs);
-  var pipeHtml = pkeys.length ? pkeys.map(function (p) {
+  var projs = state.pipeline.projects || {}, pk = Object.keys(projs);
+  var pipe = pk.length ? pk.map(function (p) {
     var row = projs[p], notes = row._notes || {};
-    return '<div class="proj-name">' + esc(p) + '</div><div class="pipe">' +
-      GATES.map(function (g) {
-        var st = row[g] || 'blocked';
-        var t = notes[g] ? ' title="' + esc(notes[g]) + '"' : '';
-        return '<div class="gate"' + t + '><span class="g">' + g + '</span><span class="s">' + (GATE_SYM[st] || GATE_SYM.blocked) + '</span></div>';
-      }).join('') + '</div>';
-  }).join('') : '<p class="empty">nenhum projeto ainda (o piloto app-001 comeca na PARTE 5)</p>';
+    return '<div class="proj-name">' + esc(p) + '</div><div class="pipe">' + GATES.map(function (g) {
+      var s = row[g] || 'blocked', t = notes[g] ? ' title="' + esc(notes[g]) + '"' : '';
+      return '<div class="gate"' + t + '><div class="g">' + g + '</div><div class="s">' + (GATE_SYM[s] || GATE_SYM.blocked) + '</div></div>';
+    }).join('') + '</div>';
+  }).join('') : '<p class="empty">nenhum projeto ainda (piloto app-001 começa na PARTE 5)</p>';
 
   var active = state.agents.filter(function (a) { return a.status === 'trabalhando'; });
-  var activeHtml = active.length ? '<div class="grid">' + active.map(cardMini).join('') + '</div>'
-    : '<p class="empty">nenhum agente ativo agora</p>';
-
+  var activeH = active.length ? '<div class="agrid">' + active.map(cardMini).join('') + '</div>' : '<p class="empty">nenhum agente ativo agora</p>';
   var blocked = state.agents.filter(function (a) { return a.status === 'bloqueado'; });
-  var blockedHtml = blocked.length ? '<table><tr><th>Agente</th><th>TASK</th><th>Motivo (ultima acao)</th></tr>' +
-    blocked.map(function (a) {
-      return '<tr><td>' + esc(a.id) + ' ' + esc(a.slug) + '</td><td>' + esc(a.task_atual || '—') +
-        '</td><td class="ev-sum">' + esc(a.ultima_acao ? a.ultima_acao.summary : '—') + '</td></tr>';
-    }).join('') + '</table>' : '<p class="empty">nenhum bloqueio</p>';
+  var blockedH = blocked.length ? '<table class="sh-table"><tr><th>agente</th><th>task</th><th>motivo</th></tr>' + blocked.map(function (a) {
+    return '<tr><td>' + esc(a.id) + ' ' + esc(a.slug) + '</td><td>' + esc(a.task_atual || '—') + '</td><td class="wrap">' + esc(a.ultima_acao ? a.ultima_acao.summary : '—') + '</td></tr>';
+  }).join('') + '</table>' : '<p class="empty">nenhum bloqueio</p>';
 
   var evs = state.events.slice(-20).reverse();
-  var evHtml = evs.length ? '<table><tr><th>ts</th><th>agente</th><th>tipo</th><th>resumo</th><th>model</th><th>effort</th></tr>' +
-    evs.map(function (e) {
-      return '<tr><td class="mono">' + esc(shortTs(e.ts)) + '</td><td>' + esc(e.agent) + '</td><td><span class="tag">' + esc(e.type) + '</span></td>' +
-        '<td class="ev-sum">' + esc(e.summary) + '</td><td><span class="tag">' + esc(e.model) + '</span></td><td><span class="tag">' + esc(e.effort) + '</span></td></tr>';
-    }).join('') + '</table>' : '<p class="empty">sem eventos</p>';
+  var evH = evs.length ? '<div class="sh-scroll" style="max-height:340px"><table class="sh-table"><tr><th>ts</th><th>agente</th><th>tipo</th><th>resumo</th><th>model</th><th>effort</th></tr>' + evs.map(function (e) {
+    return '<tr><td class="mono">' + esc(shortTs(e.ts)) + '</td><td>' + esc(e.agent) + '</td><td><span class="sh-tag">' + esc(e.type) + '</span></td><td class="wrap">' + esc(e.summary) + '</td><td><span class="sh-tag">' + esc(e.model) + '</span></td><td><span class="sh-tag">' + esc(e.effort) + '</span></td></tr>';
+  }).join('') + '</table></div>' : '<p class="empty">sem eventos</p>';
 
   var m = state.metrics || {};
-  var tiles = [
-    ['MRR', m.mrr != null ? 'R$ ' + m.mrr : '—'],
-    ['Churn', m.churn != null ? m.churn + '%' : '—'],
-    ['NPS', m.nps != null ? m.nps : '—'],
-    ['Usuarios ativos', m.active_users != null ? m.active_users : '—'],
-    ['Trials', m.trials != null ? m.trials : '—'],
-    ['Erros', m.errors != null ? m.errors : '—']
-  ].map(function (t) { return '<div class="tile"><div class="k">' + t[0] + '</div><div class="v">' + esc(t[1]) + '</div></div>'; }).join('');
-
-  return '<h2>Visao geral</h2>' +
-    '<div class="panel"><h3>Pipeline por gate</h3>' + pipeHtml + '</div>' +
-    '<div class="row"><div class="panel"><h3>Agentes ativos agora</h3>' + activeHtml + '</div>' +
-    '<div class="panel"><h3>Bloqueios</h3>' + blockedHtml + '</div></div>' +
-    '<div class="panel"><h3>Metricas (simuladas ate existirem reais)</h3><div class="tiles">' + tiles + '</div></div>' +
-    '<div class="panel"><h3>Ultimos 20 eventos</h3>' + evHtml + '</div>';
-}
-
-function statusBadge(s) { return '<span class="badge b-' + esc(s) + '">' + esc(s) + '</span>'; }
-function cardMini(a) {
-  return '<div class="card"><div class="head"><img src="' + SPR(a.id) + '" alt=""><div>' +
-    '<div class="id">' + esc(a.id) + '</div><div class="slug">' + esc(a.slug) + '</div>' +
-    '<div class="bloco">' + esc(a.bloco) + '</div></div></div>' +
-    '<div class="meta">' + statusBadge(a.status) + ' · ' + esc(a.task_atual || '—') + '</div>' +
-    '<div class="last">' + esc(a.ultima_acao ? a.ultima_acao.summary : '—') + '</div>' +
-    '<div class="btns"><button data-live="' + a.id + '">VER AO VIVO</button><button data-chat="' + a.id + '">CHAT</button></div></div>';
-}
-
-/* ---------- agents grid ---------- */
-function viewAgents() {
-  var blocos = [];
-  state.agents.forEach(function (a) { if (blocos.indexOf(a.bloco) < 0) blocos.push(a.bloco); });
-  var f = viewAgents._f || (viewAgents._f = { bloco: '', status: '', q: '' });
-  var opts = function (arr, cur) {
-    return '<option value="">(todos)</option>' + arr.map(function (x) {
-      return '<option value="' + esc(x) + '"' + (x === cur ? ' selected' : '') + '>' + esc(x) + '</option>';
+  var tiles = [['MRR', m.mrr, 'R$ '], ['Churn', m.churn, '', '%'], ['NPS', m.nps], ['Usuários', m.active_users], ['Trials', m.trials], ['Erros', m.errors]]
+    .map(function (t) {
+      var num = typeof t[1] === 'number';
+      return '<div class="tile"><div class="k">' + esc(t[0]) + '</div><div class="v"' + (num ? ' data-cu="' + t[1] + '" data-pre="' + (t[2] || '') + '" data-suf="' + (t[3] || '') + '"' : '') + '>' + (num ? (t[2] || '') + t[1] + (t[3] || '') : '—') + '</div></div>';
     }).join('');
-  };
+
+  return '<div class="rb-aurora"></div><h1 class="h1">Visão geral</h1>' +
+    '<div class="sh-card"><div class="sh-card-head">Pipeline por gate</div><div class="sh-card-body">' + pipe + '</div></div>' +
+    '<div class="row"><div class="sh-card"><div class="sh-card-head">Agentes ativos agora</div><div class="sh-card-body">' + activeH + '</div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Bloqueios</div><div class="sh-card-body">' + blockedH + '</div></div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Métricas (simuladas até existirem reais)</div><div class="sh-card-body"><div class="tiles">' + tiles + '</div></div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Últimos 20 eventos</div><div class="sh-card-body">' + evH + '</div></div>';
+}
+function cardMini(a) {
+  return '<div class="acard rb-spotlight" data-agent="' + esc(a.id) + '"><div class="top"><img src="' + SPR(a.id) + '" alt=""><div>' +
+    '<div class="id">' + esc(a.id) + '</div><div class="slug">' + esc(a.slug) + '</div><div class="meta">' + esc(a.bloco) + '</div></div></div>' +
+    '<div>' + statusBadge(a.status) + ' <span class="sh-tag">' + esc(a.task_atual || '—') + '</span></div>' +
+    '<div class="meta">' + esc(a.ultima_acao ? a.ultima_acao.summary : 'sem ações ainda') + '</div></div>';
+}
+
+/* ---------- agents ---------- */
+function agentSpark(id) {
+  var since = Date.now() - 24 * 3600e3, b = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  state.events.forEach(function (e) {
+    if (e.agent !== id) return;
+    var t = Date.parse(e.ts); if (isNaN(t) || t < since) return;
+    var i = Math.floor((t - since) / (24 * 3600e3 / 12)); if (i >= 0 && i < 12) b[i]++;
+  });
+  return window.FX.sparkline(b, 200, 26);
+}
+function viewAgents() {
+  var f = viewAgents._f || (viewAgents._f = { bloco: '', status: '', modelo: '', q: '' });
+  var opt = function (arr, cur) { return '<option value="">(todos)</option>' + arr.map(function (x) { return '<option' + (x === cur ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join(''); };
   var list = state.agents.filter(function (a) {
     if (f.bloco && a.bloco !== f.bloco) return false;
     if (f.status && a.status !== f.status) return false;
+    if (f.modelo && a.modelo !== f.modelo) return false;
     if (f.q && (a.id + ' ' + a.slug + ' ' + a.bloco).toLowerCase().indexOf(f.q.toLowerCase()) < 0) return false;
     return true;
   });
   var cards = list.map(function (a) {
-    return '<div class="card"><div class="head"><img src="' + SPR(a.id) + '" alt=""><div>' +
-      '<div class="id">' + esc(a.id) + '</div><div class="slug">' + esc(a.slug) + '</div>' +
-      '<div class="bloco">' + esc(a.bloco) + '</div></div></div>' +
-      '<div class="meta">' + statusBadge(a.status) + '</div>' +
-      '<div class="meta">TASK: ' + esc(a.task_atual || '—') + ' · ' + esc(a.modelo) + ' · ' + esc(a.effort) + ' · ' + esc(a.nivel) + '</div>' +
-      '<div class="last">' + esc(a.ultima_acao ? (shortTs(a.ultima_acao.ts) + ' — ' + a.ultima_acao.summary) : 'sem acoes ainda') + '</div>' +
-      '<div class="btns"><button data-live="' + a.id + '">VER AO VIVO</button><button data-chat="' + a.id + '">CHAT</button></div></div>';
+    return '<div class="acard rb-spotlight' + (a.status === 'trabalhando' ? ' rb-pulse' : '') + '" data-agent="' + esc(a.id) + '">' +
+      '<div class="top"><img src="' + SPR(a.id) + '" alt=""><div><div class="id">' + esc(a.id) + '</div><div class="slug">' + esc(a.slug) + '</div>' +
+      '<div class="meta">' + esc(a.bloco) + '</div><div class="meta">nível ' + esc(a.nivel) + ' · ' + esc(a.modelo) + '/' + esc(a.effort) + '</div></div></div>' +
+      '<div>' + statusBadge(a.status) + ' <span class="sh-tag">' + esc(a.task_atual || '—') + '</span></div>' +
+      agentSpark(a.id) +
+      '<div class="meta">' + esc(a.ultima_acao ? (shortTs(a.ultima_acao.ts) + ' — ' + a.ultima_acao.summary) : 'sem ações ainda') + '</div>' +
+      '<div class="btns"><button class="sh-btn" data-open="' + esc(a.id) + '">Detalhes</button>' +
+      '<button class="sh-btn ghost" data-chat="' + esc(a.id) + '">Chat</button>' +
+      '<button class="sh-btn ghost" data-pause="' + esc(a.id) + '">Pausar</button></div></div>';
   }).join('');
-  return '<h2>Agentes (' + list.length + '/' + state.agents.length + ')</h2>' +
-    '<div class="filters"><label>Bloco <select id="f-bloco">' + opts(blocos, f.bloco) + '</select></label>' +
-    '<label>Status <select id="f-status">' + opts(['idle', 'trabalhando', 'bloqueado', 'aguardando-humano', 'na-fila'], f.status) + '</select></label>' +
-    '<input id="f-q" placeholder="buscar..." value="' + esc(f.q) + '"></div>' +
-    '<div class="grid">' + (cards || '<p class="empty">nenhum agente com esse filtro</p>') + '</div>';
+  var models = []; state.agents.forEach(function (a) { if (models.indexOf(a.modelo) < 0) models.push(a.modelo); });
+  return '<h1 class="h1">Agentes (' + list.length + '/' + state.agents.length + ')</h1>' +
+    '<div class="filters"><label>Bloco <select id="f-bloco">' + opt(BLOCOS, f.bloco) + '</select></label>' +
+    '<label>Status <select id="f-status">' + opt(['idle', 'trabalhando', 'bloqueado', 'aguardando-humano', 'na-fila'], f.status) + '</select></label>' +
+    '<label>Modelo <select id="f-modelo">' + opt(models, f.modelo) + '</select></label>' +
+    '<input id="f-q" placeholder="buscar…" value="' + esc(f.q) + '"></div>' +
+    '<div class="agrid">' + (cards || '<p class="empty">nada com esse filtro</p>') + '</div>';
 }
 
-/* ---------- agent detail ---------- */
-function viewAgentDetail(id) {
-  var a = state.agents.filter(function (x) { return x.id === id; })[0];
-  if (!a) return '<a class="back" href="#agents">&larr; agentes</a><p class="empty">agente ' + esc(id) + ' nao encontrado</p>';
+/* ---------- agent modal ---------- */
+function openAgent(id) {
+  var a = agentById(id); if (!a) return;
   var mine = state.events.filter(function (e) { return e.agent === id; }).slice(-50).reverse();
-  var stream = mine.length ? '<table><tr><th>ts</th><th>tipo</th><th>ferramenta</th><th>resumo</th><th>model/effort</th></tr>' +
-    mine.map(function (e) {
-      return '<tr><td class="mono">' + esc(shortTs(e.ts)) + '</td><td><span class="tag">' + esc(e.type) + '</span></td>' +
-        '<td>' + esc(e.tool || '—') + '</td><td class="ev-sum">' + esc(e.summary) + '</td>' +
-        '<td><span class="tag">' + esc(e.model) + '</span> <span class="tag">' + esc(e.effort) + '</span></td></tr>';
-    }).join('') + '</table>' : '<p class="empty">sem acoes registradas</p>';
-  var arts = mine.filter(function (e) { return /artifact|artefato|snapshot|part-report|seed|human-instruction/.test(e.type); })
-    .slice(0, 12).map(function (e) { return '<li class="ev-sum">' + esc(shortTs(e.ts)) + ' — ' + esc(e.summary) + '</li>'; }).join('');
-
-  return '<a class="back" href="#agents">&larr; agentes</a>' +
-    '<h2>' + esc(a.id) + ' — ' + esc(a.slug) + '</h2>' +
-    '<div class="panel"><div class="head" style="display:flex;gap:12px;align-items:center">' +
-    '<img class="mini-sprite" src="' + SPR(a.id) + '" alt="">' +
-    '<div><div>' + esc(a.bloco) + '</div><div>' + statusBadge(a.status) + ' · TASK atual: <b>' + esc(a.task_atual || '—') + '</b></div>' +
-    '<div class="muted">gate principal ' + esc(a.gate_principal) + ' · model <b>' + esc(a.modelo) + '</b> · effort <b>' + esc(a.effort) + '</b> · fallback ' + esc(a.fallback_pro) + '</div></div></div></div>' +
-    '<div class="panel"><h3>Progresso da tarefa</h3>' +
-    (a.task_atual ? '<p>' + esc(a.task_atual) + ' — ' + esc(a.status) + '. Ultima acao: ' + esc(a.ultima_acao ? a.ultima_acao.summary : '—') + '</p>' : '<p class="empty">sem tarefa em andamento</p>') + '</div>' +
-    '<div class="panel"><h3>Permissoes ativas</h3><p><b>Nivel ' + esc(a.nivel) + '</b> — ' + esc(NIVEL_DESC[a.nivel] || '') + '</p>' +
-    '<p class="muted">Ferramentas conforme a secao "Ferramentas permitidas" de .claude/agents/' + esc(a.id) + '-' + esc(a.slug) + '.md; nunca acima do nivel; fallback nativo + skill_fallback se skill indisponivel.</p></div>' +
-    '<div class="panel"><h3>Artefatos / marcos</h3>' + (arts ? '<ul>' + arts + '</ul>' : '<p class="empty">nenhum artefato ainda</p>') + '</div>' +
-    '<div class="panel"><h3>Stream (ultimas 50 acoes)</h3>' + stream + '</div>';
+  var stream = mine.length ? '<table class="sh-table"><tr><th>ts</th><th>tipo</th><th>tool</th><th>resumo</th><th>model/effort</th></tr>' + mine.map(function (e) {
+    return '<tr><td class="mono">' + esc(shortTs(e.ts)) + '</td><td><span class="sh-tag">' + esc(e.type) + '</span></td><td>' + esc(e.tool || '—') + '</td><td class="wrap">' + esc(e.summary) + '</td><td><span class="sh-tag">' + esc(e.model) + '</span> <span class="sh-tag">' + esc(e.effort) + '</span></td></tr>';
+  }).join('') + '</table>' : '<p class="empty">sem ações registradas</p>';
+  var arts = mine.filter(function (e) { return /artifact|artefato|snapshot|part-report|seed|human-instruction|pentest/.test(e.type); }).slice(0, 12)
+    .map(function (e) { return '<li class="wrap">' + esc(shortTs(e.ts)) + ' — ' + esc(e.summary) + '</li>'; }).join('');
+  var body = '<div style="display:flex;gap:14px;align-items:center;margin-bottom:12px">' +
+    '<img class="sh-avatar" style="width:56px;height:56px" src="' + SPR(a.id) + '" alt="">' +
+    '<div><div>' + esc(a.bloco) + '</div><div>' + statusBadge(a.status) + ' · TASK <b>' + esc(a.task_atual || '—') + '</b></div>' +
+    '<div class="muted">gate ' + esc(a.gate_principal) + ' · model <b>' + esc(a.modelo) + '</b> · effort <b>' + esc(a.effort) + '</b> · fallback ' + esc(a.fallback_pro) + '</div></div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Permissões (nível ' + esc(a.nivel) + ')</div><div class="sh-card-body">' + esc(NIVEL_DESC[a.nivel] || '') +
+    '<p class="muted">Ferramentas: ver .claude/agents/' + esc(a.id) + '-' + esc(a.slug) + '.md. Fallback nativo + skill_fallback se skill/integração indisponível.</p></div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Artefatos / marcos</div><div class="sh-card-body">' + (arts ? '<ul>' + arts + '</ul>' : '<p class="empty">nenhum ainda</p>') + '</div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Stream (últimas 50 ações)</div><div class="sh-card-body sh-scroll" style="max-height:320px">' + stream + '</div></div>' +
+    '<div class="filters" style="margin-top:10px"><button class="sh-btn ghost" data-pause="' + esc(a.id) + '">Pausar</button>' +
+    '<button class="sh-btn ghost" data-prio="' + esc(a.id) + '">Priorizar</button>' +
+    '<button class="sh-btn ghost" data-effort="' + esc(a.id) + '">effort → high</button></div>';
+  showDialog(a.id + ' — ' + a.slug, body);
 }
-
-/* ---------- chat ---------- */
-function renderChat(id) {
-  var el = document.getElementById('view');
-  var a = state.agents.filter(function (x) { return x.id === id; })[0];
-  if (HOSTED) {
-    put(el, '<a class="back" href="#agents">&larr; agentes</a><h2>Chat — ' + esc(id) + (a ? ' (' + esc(a.slug) + ')' : '') + '</h2>' +
-      '<div class="panel"><p class="notice">Painel em <b>modo monitor</b> (hospedado, somente leitura). ' +
-      'Para enviar instrucao a um agente, use a sessao do Claude que roda a fabrica ' +
-      '(claude.ai/code ou app), ou <code>claude -p "..." --cloud &lt;session-id&gt;</code>.</p>' +
-      '<p class="muted">O historico de chat por agente so aparece na versao local/tunel.</p></div>');
-    return;
-  }
-  put(el, '<a class="back" href="#agents">&larr; agentes</a><h2>Chat — ' + esc(id) + (a ? ' (' + esc(a.slug) + ')' : '') + '</h2>' +
-    '<div class="panel"><div class="chat-log" id="chat-log"><p class="empty">carregando historico…</p></div>' +
-    '<div class="composer"><textarea id="chat-input" placeholder="instrucao direta para ' + esc(id) + ' (vira TASK priority 99 e dispara o orchestrator)"></textarea>' +
-    '<div class="notice" id="chat-notice"></div><button class="send" id="chat-send">Enviar</button></div></div>');
-
-  getText('/company/logs/chats/' + id + '.jsonl').then(function (txt) {
-    var msgs = parseJsonl(txt);
-    var log = document.getElementById('chat-log');
-    if (!log) return;
-    put(log, msgs.length ? msgs.map(function (m) {
-      return '<div class="msg"><div class="m-head">' + esc(shortTs(m.ts)) + ' · <b>' + esc(m.from) + '</b> &rarr; ' + esc(m.to) +
-        (m.task_ref ? ' · <span class="tag">' + esc(m.task_ref) + '</span>' : '') + '</div>' +
-        '<div class="m-body">' + esc(m.content) + '</div></div>';
-    }).join('') : '<p class="empty">sem mensagens em company/logs/chats/' + esc(id) + '.jsonl ainda</p>');
-    log.scrollTop = log.scrollHeight;
-  });
-
-  var btn = document.getElementById('chat-send');
-  btn.addEventListener('click', function () {
-    var ta = document.getElementById('chat-input');
-    var notice = document.getElementById('chat-notice');
-    var text = (ta.value || '').trim();
-    if (!text) { notice.textContent = 'digite uma instrucao.'; return; }
-    btn.disabled = true; notice.textContent = 'criando TASK…';
-    fetch('/api/task', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent: id, input: text })
-    }).then(function (r) { return r.json(); }).then(function (j) {
-      if (!j || !j.ok) throw new Error(j && j.error ? j.error : 'falha');
-      notice.textContent = j.task + ' criada. disparando orchestrator…';
-      return fetch('/api/tick', { method: 'POST' }).then(function (r) { return r.json(); });
-    }).then(function (tk) {
-      notice.textContent = 'orchestrator tick ' + ((tk && tk.ok) ? 'ok' : 'executado') + '. veja Agentes / Visao geral.';
-      ta.value = '';
-    }).catch(function (e) { notice.textContent = 'erro: ' + e.message; })
-      .then(function () { btn.disabled = false; });
-  });
+function showDialog(title, bodyHtml) {
+  closeDialog();
+  var o = document.createElement('div'); o.className = 'sh-overlay'; o.id = 'avf-dialog';
+  put(o, '<div class="sh-dialog"><div class="dh"><b>' + esc(title) + '</b><span class="x">✕</span></div><div class="db">' + bodyHtml + '</div></div>');
+  o.addEventListener('click', function (e) { if (e.target === o || e.target.className === 'x') closeDialog(); });
+  document.body.appendChild(o);
+  wire(o);
 }
+function closeDialog() { var d = document.getElementById('avf-dialog'); if (d) d.remove(); }
+window.AVF.openAgent = openAgent;
+window.AVF.showDialog = showDialog;
 
 /* ---------- finance ---------- */
 function viewFinance() {
   var m = state.metrics || {}, pr = state.pricing;
-  var planos = pr && pr.plans ? '<table><tr><th>Plano</th><th>Preco</th><th>Periodo</th><th>Assinantes</th></tr>' +
-    pr.plans.map(function (p) {
-      return '<tr><td>' + esc(p.name) + '</td><td>' + esc(p.price) + '</td><td>' + esc(p.period || 'mes') + '</td><td>' + esc(p.subscribers != null ? p.subscribers : '—') + '</td></tr>';
-    }).join('') + '</table>' : '<p class="empty">company/projects/app-001/pricing.json ainda nao existe (definido por A22/A48)</p>';
-  var tiles = [
-    ['MRR', m.mrr != null ? 'R$ ' + m.mrr : '—'],
-    ['Churn', m.churn != null ? m.churn + '%' : '—'],
-    ['LTV', m.ltv != null ? 'R$ ' + m.ltv : '—'],
-    ['CAC', m.cac != null ? 'R$ ' + m.cac : '—'],
-    ['LTV/CAC', (m.ltv && m.cac) ? (m.ltv / m.cac).toFixed(2) : '—'],
-    ['Usuarios ativos', m.active_users != null ? m.active_users : '—'],
-    ['Conversao', m.conversion != null ? (m.conversion * 100).toFixed(1) + '%' : '—']
-  ].map(function (t) { return '<div class="tile"><div class="k">' + t[0] + '</div><div class="v">' + esc(t[1]) + '</div></div>'; }).join('');
+  var planos = pr && pr.plans ? '<table class="sh-table"><tr><th>plano</th><th>preço</th><th>período</th><th>assinantes</th></tr>' +
+    pr.plans.map(function (p) { return '<tr><td>' + esc(p.name) + '</td><td>' + esc(p.price) + '</td><td>' + esc(p.period || 'mês') + '</td><td>' + esc(p.subscribers != null ? p.subscribers : '—') + '</td></tr>'; }).join('') + '</table>'
+    : '<p class="empty">company/projects/app-001/pricing.json ainda não existe</p>';
+  var rows = [['MRR', m.mrr, 'R$ '], ['Churn', m.churn, '', '%'], ['LTV', m.ltv, 'R$ '], ['CAC', m.cac, 'R$ '],
+  ['LTV/CAC', (m.ltv && m.cac) ? +(m.ltv / m.cac).toFixed(2) : null], ['Usuários', m.active_users],
+  ['Conversão', m.conversion != null ? +(m.conversion * 100).toFixed(1) : null, '', '%']];
+  var tiles = rows.map(function (t) {
+    var num = typeof t[1] === 'number';
+    return '<div class="tile"><div class="k">' + esc(t[0]) + '</div><div class="v"' + (num ? ' data-cu="' + t[1] + '" data-pre="' + (t[2] || '') + '" data-suf="' + (t[3] || '') + '"' : '') + '>' + (num ? (t[2] || '') + t[1] + (t[3] || '') : '—') + '</div></div>';
+  }).join('');
   var series = state.posts.map(function (p) { return Number(p.likes || p.views || p.clicks || 0); });
-  if (!series.length) series = [0, 0, 0, 0, 0];
-  return '<h2>Financeiro</h2>' +
-    '<div class="panel"><h3>Planos</h3>' + planos + '</div>' +
-    '<div class="panel"><h3>Metricas (metrics.json)</h3><div class="tiles">' + tiles + '</div></div>' +
-    '<div class="panel"><h3>Evolucao (engajamento de posts)</h3>' + sparkline(series) + '</div>';
-}
-function sparkline(values) {
-  var w = 600, h = 80, n = values.length, max = Math.max.apply(null, values.concat([1]));
-  var pts = values.map(function (v, i) {
-    var x = n > 1 ? (i / (n - 1)) * (w - 8) + 4 : w / 2;
-    var y = h - 6 - (v / max) * (h - 12);
-    return x.toFixed(1) + ',' + y.toFixed(1);
-  }).join(' ');
-  return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
-    '<polyline fill="none" stroke="#C96F4A" stroke-width="2" points="' + pts + '"/></svg>';
+  return '<h1 class="h1">Financeiro</h1>' +
+    '<div class="sh-card"><div class="sh-card-head">Planos</div><div class="sh-card-body">' + planos + '</div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Métricas (metrics.json)</div><div class="sh-card-body"><div class="tiles">' + tiles + '</div></div></div>' +
+    '<div class="sh-card"><div class="sh-card-head">Engajamento de posts</div><div class="sh-card-body">' + window.FX.sparkline(series, 640, 90, '#14b8a6') + '</div></div>';
 }
 
 /* ---------- security ---------- */
 function viewSecurity() {
-  var projs = (state.security && state.security.projects) || {};
-  var keys = Object.keys(projs);
-  if (!keys.length) return '<h2>Seguranca</h2><div class="panel"><p class="empty">nenhum projeto em ciclo de seguranca ainda (G7 comeca na PARTE 10)</p></div>';
-  return '<h2>Seguranca</h2>' + keys.map(function (p) {
+  var projs = (state.security && state.security.projects) || {}, keys = Object.keys(projs);
+  if (!keys.length) return '<h1 class="h1">Segurança</h1><div class="sh-card"><div class="sh-card-body"><p class="empty">nenhum projeto em ciclo de segurança (G7 começa na PARTE 10)</p></div></div>';
+  return '<h1 class="h1">Segurança</h1>' + keys.map(function (p) {
     var s = projs[p], o = s.open || {};
-    return '<div class="panel"><div class="proj-name">' + esc(p) + '</div><h3>Falhas abertas por severidade</h3><div class="sev">' +
-      '<div class="s critica"><div class="n">' + (o.critica || 0) + '</div><div>critica</div></div>' +
-      '<div class="s alta"><div class="n">' + (o.alta || 0) + '</div><div>alta</div></div>' +
-      '<div class="s media"><div class="n">' + (o.media || 0) + '</div><div>media</div></div>' +
-      '<div class="s baixa"><div class="n">' + (o.baixa || 0) + '</div><div>baixa</div></div></div>' +
-      '<h3>Ciclo red/blue (G7)</h3><p>' + esc(s.redblue || '—') + '</p>' +
-      '<h3>Dependencias vulneraveis (A34)</h3><p>' + esc(s.deps || 0) + ' CVE(s) em company/security/dep-audit-' + esc(p) + '.md</p></div>';
+    return '<div class="sh-card"><div class="sh-card-head">' + esc(p) + '</div><div class="sh-card-body">' +
+      '<div class="sev"><div class="s critica"><div class="n">' + esc(o.critica || 0) + '</div>crítica</div>' +
+      '<div class="s alta"><div class="n">' + esc(o.alta || 0) + '</div>alta</div>' +
+      '<div class="s media"><div class="n">' + esc(o.media || 0) + '</div>média</div>' +
+      '<div class="s baixa"><div class="n">' + esc(o.baixa || 0) + '</div>baixa</div></div>' +
+      '<p class="h2">Ciclo red/blue (G7)</p><p>' + esc(s.redblue || '—') + '</p>' +
+      '<p class="h2">Dependências (A34)</p><p>' + esc(s.deps || 0) + ' CVE(s)</p></div></div>';
   }).join('');
 }
 
+/* ---------- integrations ---------- */
+function viewIntegrations() {
+  return '<h1 class="h1">Integrações (' + INTEGRATIONS.length + ')</h1>' +
+    '<p class="muted">Stubs com gate humano. Nenhuma chama serviço pago/externo sem sua aprovação. Docs em <span class="mono">company/integrations/</span>.</p>' +
+    '<div class="intgrid">' + INTEGRATIONS.map(function (r) {
+      var t = { on: 'aplicada', off: 'desligada', stub: 'stub' }[r[3]];
+      return '<div class="intcard"><h4>' + esc(r[0]) + '</h4><div class="st ' + esc(r[3]) + '">' + esc(t) + '</div>' +
+        '<p class="muted" style="margin:6px 0 2px">' + esc(r[1]) + '</p><div class="sh-tag">' + esc(r[2]) + '</div></div>';
+    }).join('') + '</div>';
+}
+
 /* ---------- wiring ---------- */
-function wireButtons() {
-  document.querySelectorAll('[data-live]').forEach(function (b) {
-    b.onclick = function () { location.hash = '#agent/' + b.getAttribute('data-live'); };
+function wire(root) {
+  root = root || document;
+  root.querySelectorAll('[data-agent]').forEach(function (el) {
+    el.onclick = function (e) { if (e.target.closest('button')) return; openAgent(el.getAttribute('data-agent')); };
   });
-  document.querySelectorAll('[data-chat]').forEach(function (b) {
-    b.onclick = function () { location.hash = '#chat/' + b.getAttribute('data-chat'); };
-  });
-  var fb = document.getElementById('f-bloco'), fs = document.getElementById('f-status'), fq = document.getElementById('f-q');
+  root.querySelectorAll('[data-open]').forEach(function (b) { b.onclick = function () { openAgent(b.getAttribute('data-open')); }; });
+  root.querySelectorAll('[data-chat]').forEach(function (b) { b.onclick = function () { closeDialog(); location.hash = '#human'; }; });
+  root.querySelectorAll('[data-pause]').forEach(function (b) { b.onclick = function () { agentAction(b.getAttribute('data-pause'), 'pausar'); }; });
+  root.querySelectorAll('[data-prio]').forEach(function (b) { b.onclick = function () { agentAction(b.getAttribute('data-prio'), 'priorizar'); }; });
+  root.querySelectorAll('[data-effort]').forEach(function (b) { b.onclick = function () { agentAction(b.getAttribute('data-effort'), 'mudar effort para high'); }; });
+
+  var fb = document.getElementById('f-bloco'), fs = document.getElementById('f-status'), fm = document.getElementById('f-modelo'), fq = document.getElementById('f-q');
   if (fb) fb.onchange = function () { viewAgents._f.bloco = fb.value; render(); };
   if (fs) fs.onchange = function () { viewAgents._f.status = fs.value; render(); };
-  if (fq) fq.oninput = function () {
-    viewAgents._f.q = fq.value; var p = fq.selectionStart; render();
-    var n = document.getElementById('f-q'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (_) {} }
-  };
+  if (fm) fm.onchange = function () { viewAgents._f.modelo = fm.value; render(); };
+  if (fq) fq.oninput = function () { viewAgents._f.q = fq.value; var p = fq.selectionStart; render(); var n = document.getElementById('f-q'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (_) {} } };
+
+  document.querySelectorAll('[data-cu]').forEach(function (el) {
+    var v = el.getAttribute('data-cu'); if (v === '' || v == null) return;
+    window.FX.countUp(el, Number(v), { prefix: el.getAttribute('data-pre') || '', suffix: el.getAttribute('data-suf') || '', decimals: (Number(v) % 1 ? 2 : 0) });
+  });
+  window.FX.spotlightAll(root);
 }
+function agentAction(id, action) {
+  if (HOSTED) { alert('Modo monitor (hospedado). Use a sessão do Claude para instruir agentes.'); return; }
+  post('/api/agent-action', { agent: id, action: action })
+    .then(function (j) { alert(j && j.ok ? ('OK — ' + (j.task || 'registrado')) : ('erro: ' + (j && j.error))); })
+    .catch(function () { alert('sem backend (modo monitor)'); });
+}
+
+/* ---------- busca no topo ---------- */
+var ts = document.getElementById('topsearch');
+if (ts) ts.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter') return;
+  var q = e.target.value.trim().toLowerCase();
+  var hit = state.agents.filter(function (a) { return (a.id + ' ' + a.slug).toLowerCase().indexOf(q) >= 0; })[0];
+  if (hit) { openAgent(hit.id); e.target.value = ''; }
+});
 
 /* ---------- loop ---------- */
 var lastOk = 0;
 function tick() {
   loadAll().then(function () {
     lastOk = Date.now();
-    var st = document.getElementById('poll-status'); if (st) st.classList.remove('stale');
+    var d = document.getElementById('poll-dot'); if (d) d.classList.remove('stale');
     render();
   });
 }
 window.addEventListener('hashchange', render);
-setInterval(function () {
-  var st = document.getElementById('poll-status');
-  if (st && Date.now() - lastOk > POLL_MS * 3) st.classList.add('stale');
-}, 1000);
+setInterval(function () { var d = document.getElementById('poll-dot'); if (d && Date.now() - lastOk > POLL_MS * 3) d.classList.add('stale'); }, 1000);
 setInterval(tick, POLL_MS);
 tick();

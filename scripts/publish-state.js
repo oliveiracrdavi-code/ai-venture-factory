@@ -58,13 +58,17 @@ fs.mkdirSync(DOCS_STATE, { recursive: true });
   copy(path.join(ROOT, 'dashboard', f), path.join(DOCS, f));
 });
 copyDir(path.join(ROOT, 'dashboard', 'sprites'), path.join(DOCS, 'sprites'));
+copyDir(path.join(ROOT, 'dashboard', 'components'), path.join(DOCS, 'components'));
+try { copyDir(path.join(ROOT, 'dashboard', 'icons'), path.join(DOCS, 'icons')); } catch (_) {}
 // .nojekyll para o GitHub Pages nao ignorar pastas com _underscore etc
 try { fs.writeFileSync(path.join(DOCS, '.nojekyll'), ''); } catch (_) {}
 
 // 3. estado -> docs/state/
-['agents.json', 'pipeline.json', 'security.json'].forEach(function (f) {
+['agents.json', 'pipeline.json', 'security.json', 'approvals.json', 'announcements.json'].forEach(function (f) {
   copy(path.join(L.P.stateDir, f), path.join(DOCS_STATE, f));
 });
+copy(path.join(L.P.stateDir, 'chat-merged.jsonl'), path.join(DOCS_STATE, 'chat-merged.jsonl'));
+copy(path.join(L.P.stateDir, 'human-chat.jsonl'), path.join(DOCS_STATE, 'human-chat.jsonl'));
 copy(path.join(L.P.metricsDir, 'metrics.json'), path.join(DOCS_STATE, 'metrics.json'));
 copy(path.join(L.P.marketingDir, 'channels.json'), path.join(DOCS_STATE, 'channels.json'));
 fs.writeFileSync(path.join(DOCS_STATE, 'events.jsonl'), tail(L.P.events, 500));

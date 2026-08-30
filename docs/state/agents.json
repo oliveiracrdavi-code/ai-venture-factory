@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T00:56:30.741Z",
+  "generated_at": "2026-08-30T06:53:20.460Z",
   "count": 49,
   "agents": [
     {
@@ -104,7 +104,11 @@
       "gate_principal": "G0–G10 (orquestração)",
       "status": "idle",
       "task_atual": null,
-      "ultima_acao": null
+      "ultima_acao": {
+        "ts": "2026-08-30T06:52:34.923Z",
+        "type": "task-start",
+        "summary": "ativada no gate G0 (app-001)"
+      }
     },
     {
       "id": "A09",
@@ -260,7 +264,11 @@
       "gate_principal": "G6",
       "status": "idle",
       "task_atual": null,
-      "ultima_acao": null
+      "ultima_acao": {
+        "ts": "2026-08-30T06:52:35.119Z",
+        "type": "task-start",
+        "summary": "ativada no gate G0 (app-001)"
+      }
     },
     {
       "id": "A21",
