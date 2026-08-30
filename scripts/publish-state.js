@@ -54,9 +54,20 @@ sh(process.execPath, [path.join(__dirname, 'snapshot.js')]);
 
 // 2. dashboard -> docs/
 fs.mkdirSync(DOCS_STATE, { recursive: true });
-['index.html', 'styles.css', 'app.js'].forEach(function (f) {
+['styles.css', 'app.js'].forEach(function (f) {
   copy(path.join(ROOT, 'dashboard', f), path.join(DOCS, f));
 });
+// index.html recebe o marcador data-avf-hosted="1" -- e o UNICO lugar onde ele
+// e gravado. dashboard/index.html (servido ao vivo por server.js, local ou via
+// tunel) nunca tem esse atributo, entao app.js nunca entra em modo hospedado
+// la, mesmo atras de um dominio publico como o do Cloudflare Tunnel.
+(function () {
+  var html = fs.readFileSync(path.join(ROOT, 'dashboard', 'index.html'), 'utf8');
+  if (html.indexOf('data-avf-hosted') === -1) {
+    html = html.replace('<html', '<html data-avf-hosted="1"');
+  }
+  fs.writeFileSync(path.join(DOCS, 'index.html'), html);
+})();
 copyDir(path.join(ROOT, 'dashboard', 'sprites'), path.join(DOCS, 'sprites'));
 copyDir(path.join(ROOT, 'dashboard', 'components'), path.join(DOCS, 'components'));
 try { copyDir(path.join(ROOT, 'dashboard', 'icons'), path.join(DOCS, 'icons')); } catch (_) {}

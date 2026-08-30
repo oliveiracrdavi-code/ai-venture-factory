@@ -5,13 +5,15 @@ var POLL_MS = 2500;
 var IH = 'inner' + 'HTML';
 function put(el, html) { if (el) el[IH] = html; }
 
-/* modo hospedado (docs/ em Pages) -> lê ./state/, sem server -> read-only */
+/* modo hospedado (docs/ estatico em Pages) -> le ./state/, sem server -> read-only.
+   NAO usar o hostname pra decidir: a VM serve o MESMO server.js real atras de um
+   tunel Cloudflare com dominio publico, e nesse caso os caminhos locais
+   (/company/state/**) sao os corretos. O que realmente distingue "e a copia
+   estatica de docs/" e um marcador que so o publish-state.js grava no
+   docs/index.html publicado -- nunca no dashboard/index.html servido ao vivo. */
 var HOSTED = (function () {
-  try {
-    if (location.protocol === 'file:') return false;
-    var h = location.hostname || '';
-    return !(h === 'localhost' || h === '' || /^127\./.test(h) || h === '0.0.0.0' || h === '::1' || h === '[::1]');
-  } catch (_) { return false; }
+  try { return document.documentElement.getAttribute('data-avf-hosted') === '1'; }
+  catch (_) { return false; }
 })();
 function U(name) {
   if (HOSTED) return './state/' + name;
