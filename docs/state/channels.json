@@ -1,0 +1,4 @@
+{
+  "_doc": "1 entrada por canal. Preenchido na PARTE 12. Campos: platform, enabled, method(api|manual), credentials_ref(nome logico do A30, nunca o valor), approval_rule, daily_limit(default 3), last_post_at. Todo canal nasce method=manual e enabled=false; virar api so com aprovacao humana.",
+  "channels": []
+}

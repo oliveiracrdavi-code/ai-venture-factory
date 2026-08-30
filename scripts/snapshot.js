@@ -150,6 +150,46 @@ function main() {
   var sec = buildSecurity(Object.keys(pipe.projects));
   L.writeJSON(path.join(L.P.stateDir, 'security.json'), sec);
 
+  // chat-merged.jsonl: agrega company/logs/chats/*.jsonl por ts (ult. 500)
+  var chatsDir = path.join(L.P.logsDir, 'chats');
+  var merged = [];
+  try {
+    fs.readdirSync(chatsDir).filter(function (f) { return /\.jsonl$/.test(f); }).forEach(function (f) {
+      var from = f.replace(/\.jsonl$/, '');
+      fs.readFileSync(path.join(chatsDir, f), 'utf8').trim().split(/\r?\n/).filter(Boolean).forEach(function (l) {
+        try { var o = JSON.parse(l); if (!o.from) o.from = from; merged.push(o); } catch (_) {}
+      });
+    });
+  } catch (_) {}
+  merged.sort(function (a, b) { return String(a.ts).localeCompare(String(b.ts)); });
+  merged = merged.slice(-500);
+  fs.writeFileSync(path.join(L.P.stateDir, 'chat-merged.jsonl'),
+    merged.map(function (m) { return JSON.stringify(L.maskDeep(m)); }).join('\n') + (merged.length ? '\n' : ''));
+
+  // human-chat.jsonl -> copia mascarada para state/
+  try {
+    var hc = fs.readFileSync(path.join(L.P.logsDir, 'human-chat.jsonl'), 'utf8').trim().split(/\r?\n/).filter(Boolean).slice(-300);
+    fs.writeFileSync(path.join(L.P.stateDir, 'human-chat.jsonl'),
+      hc.map(function (l) { try { return JSON.stringify(L.maskDeep(JSON.parse(l))); } catch (_) { return ''; } }).filter(Boolean).join('\n') + (hc.length ? '\n' : ''));
+  } catch (_) { try { fs.writeFileSync(path.join(L.P.stateDir, 'human-chat.jsonl'), ''); } catch (__) {} }
+
+  // approvals.json -> garante que existe em state/
+  if (!L.readJSON(path.join(L.P.stateDir, 'approvals.json'), null))
+    L.writeJSON(path.join(L.P.stateDir, 'approvals.json'), { pending: [], history: [] });
+
+  // announcements.json: consolida company/announcements/*.md
+  var annDir = path.join(L.ROOT, 'company', 'announcements');
+  var items = [];
+  try {
+    fs.readdirSync(annDir).filter(function (f) { return /\.md$/.test(f); }).sort().forEach(function (f) {
+      fs.readFileSync(path.join(annDir, f), 'utf8').split(/\r?\n/).forEach(function (line) {
+        var m = line.match(/^-\s*(\S+)\s+—\s+(.*)$/);
+        if (m) items.push({ ts: m[1], text: m[2] });
+      });
+    });
+  } catch (_) {}
+  L.writeJSON(path.join(L.P.stateDir, 'announcements.json'), { items: items.slice(-50) });
+
   L.appendEvent({
     agent: 'snapshot', task: null, type: 'snapshot', tool: 'snapshot.js',
     summary: 'agents.json (' + agentsOut.count + ') e pipeline.json (' +
