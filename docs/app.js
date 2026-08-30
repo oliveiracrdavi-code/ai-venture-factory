@@ -151,7 +151,10 @@ function render() {
   var running = state.agents.filter(function (a) { return a.status === 'trabalhando'; }).length;
   put(document.getElementById('side-sub'), state.agents.length + ' agentes · ' + pj.length + ' projeto(s)');
   var st = document.getElementById('side-status'); if (st) st.textContent = running + ' ativos · ' + new Date(state.ts).toLocaleTimeString('pt-BR');
-  var rc = document.getElementById('run-count'); if (rc) rc.textContent = running + ' de ' + state.agents.length + ' nós ativos';
+  var cb = document.getElementById('crumbs'); if (cb) cb.textContent = running + ' running';
+  var wt = document.getElementById('wf-title');
+  if (wt) wt.textContent = r.view === 'workflow'
+    ? ('Hierarchical AI Multi-Agent Workflow (' + state.agents.length + ' Agents)') : lbl;
 }
 
 /* ---------- overview ---------- */
