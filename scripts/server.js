@@ -244,6 +244,25 @@ function apiAgentAction(body, res) {
   sendJson(res, 200, { ok: true, task: id });
 }
 
+// POST /api/waitlist  { project, contact }  -- captura de smoke-test (G3 CONDICIONADO)
+// Sem gateway, sem envio real: so grava local (mascarado) para medir demanda real.
+function apiWaitlist(body, res) {
+  var data = {};
+  try { data = JSON.parse(body || '{}'); } catch (_) { return sendJson(res, 400, { error: 'json invalido' }); }
+  var project = String(data.project || 'app-001').replace(/[^a-z0-9-]/gi, '').slice(0, 32) || 'app-001';
+  var contact = String(data.contact || '').trim().slice(0, 200);
+  if (!contact) return sendJson(res, 400, { error: 'contato vazio' });
+  var dir = path.join(ROOT, 'company', 'projects', project, 'smoke-test');
+  try { fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+  var rec = { ts: new Date().toISOString(), contact: contact };
+  try {
+    fs.appendFileSync(path.join(dir, 'signups.jsonl'), JSON.stringify(L.maskDeep(rec)) + '\n');
+  } catch (e) { return sendJson(res, 500, { error: 'falha ao gravar cadastro' }); }
+  L.appendEvent({ agent: 'A01', task: null, type: 'waitlist-signup', tool: 'landing',
+    summary: 'novo cadastro na lista de espera (' + project + ')', model: 'human', effort: 'n/a' });
+  sendJson(res, 200, { ok: true });
+}
+
 var server = http.createServer(function (req, res) {
   var urlPath;
   try { urlPath = decodeURIComponent((req.url || '/').split('?')[0].split('#')[0]); }
@@ -254,7 +273,7 @@ var server = http.createServer(function (req, res) {
   }
 
   if (req.method === 'POST') {
-    var POST_ROUTES = ['/api/task', '/api/tick', '/api/human-message', '/api/approve', '/api/agent-action'];
+    var POST_ROUTES = ['/api/task', '/api/tick', '/api/human-message', '/api/approve', '/api/agent-action', '/api/waitlist'];
     if (POST_ROUTES.indexOf(urlPath) === -1) return send(res, 403, '403 Forbidden');
     var chunks = '';
     req.on('data', function (c) { chunks += c; if (chunks.length > 20000) req.destroy(); });
@@ -263,6 +282,7 @@ var server = http.createServer(function (req, res) {
       if (urlPath === '/api/human-message') return apiHumanMessage(chunks, res);
       if (urlPath === '/api/approve') return apiApprove(chunks, res);
       if (urlPath === '/api/agent-action') return apiAgentAction(chunks, res);
+      if (urlPath === '/api/waitlist') return apiWaitlist(chunks, res);
       return apiTick(res);
     });
     return;

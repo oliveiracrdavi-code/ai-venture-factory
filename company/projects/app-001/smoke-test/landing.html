@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recibo Certo — pare de perder cobrança</title>
+<style>
+  :root{--bg:#151221;--panel:#1f1b30;--accent:#7c5cff;--text1:#eee;--text2:#a09bb8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text1);font:16px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:640px;margin:0 auto;padding:56px 20px}
+  h1{font-size:32px;margin:0 0 12px}
+  .sub{color:var(--text2);font-size:18px;margin:0 0 32px}
+  .pain{background:var(--panel);border:1px solid #332e4a;border-radius:12px;padding:20px;margin:0 0 28px}
+  .pain li{margin:8px 0;color:var(--text2)}
+  .price{font-size:22px;font-weight:700;color:var(--accent);margin:0 0 4px}
+  form{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}
+  input{flex:1;min-width:220px;background:var(--panel);border:1px solid #332e4a;border-radius:8px;color:var(--text1);padding:12px 14px;font-size:16px}
+  button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:12px 22px;font-size:16px;font-weight:600;cursor:pointer}
+  button:hover{filter:brightness(1.1)}
+  .note{font-size:13px;color:var(--text2)}
+  .ok{color:#4ade80;font-weight:600;display:none}
+  .disclaimer{margin-top:40px;padding-top:20px;border-top:1px solid #332e4a;font-size:12px;color:var(--text2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Recibo Certo</h1>
+  <p class="sub">Emita recibo, cobre e não perca dinheiro de novo — feito para MEI e autônomo.</p>
+
+  <div class="pain">
+    <b>Você reconhece isso?</b>
+    <ul>
+      <li>Terminou o serviço e esqueceu de cobrar</li>
+      <li>Cliente pediu recibo e você não achou</li>
+      <li>Não sabe quanto faturou este ano (nem se estourou o limite do MEI)</li>
+    </ul>
+  </div>
+
+  <p class="price">R$ 24/mês</p>
+  <p class="note">Em construção — entre na lista de espera e avisamos no lançamento. Sem cartão, sem compromisso.</p>
+
+  <form id="wl-form">
+    <input id="wl-contact" type="text" placeholder="seu e-mail ou WhatsApp" required>
+    <button type="submit">Quero entrar na lista</button>
+  </form>
+  <p class="ok" id="wl-ok">✓ Cadastrado! Avisamos você no lançamento.</p>
+
+  <p class="disclaimer">
+    Recibo Certo é um comprovante de serviço, não é nota fiscal. Não processamos
+    nem recebemos pagamentos — apenas registramos e lembramos você de cobrar.
+    Este é um teste de demanda (smoke-test); nenhum produto foi cobrado ainda.
+  </p>
+</div>
+<script>
+  document.getElementById('wl-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var contact = document.getElementById('wl-contact').value.trim();
+    if (!contact) return;
+    fetch('/api/waitlist', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project: 'app-001', contact: contact })
+    }).then(function () {
+      document.getElementById('wl-form').style.display = 'none';
+      document.getElementById('wl-ok').style.display = 'block';
+    }).catch(function () {
+      document.getElementById('wl-ok').textContent = 'Erro ao cadastrar — tente novamente.';
+      document.getElementById('wl-ok').style.display = 'block';
+      document.getElementById('wl-ok').style.color = '#f87171';
+    });
+  });
+</script>
+</body>
+</html>

@@ -72,6 +72,15 @@ gateway/contador"* pelo preço de um lanche. Sinal de churn nos concorrentes
 (fonte C): reclamação recorrente de que app de finanças pessoais "não serve pra
 quem emite recibo".
 
+**Diferenciação concreta vs. concorrente grátis (condição 3 do CEO, A02):**
+Balancinho e GestãoMEI resolvem *caixa* (entrada/saída, estoque, DAS) — não
+resolvem *cobrança*. Nenhum dos dois tem **link público de recibo com status
+de leitura** (enviado → visto → pago) nem **lembrete automático de cobrança
+parada**. É exatamente a dor #1 do brief (score 9/10: "cobrança entregue e
+nunca cobrada/seguida") que o app gratuito não ataca porque nasceu para
+controle de caixa, não para relacionamento com o cliente que deve. Essa é a
+única funcionalidade que justifica cobrar acima de zero.
+
 ## 7. Disposição a pagar (A01)
 Faixa plausível: **R$ 19–29/mês**. Base: Organizze cobra R$ 35–45 para um
 problema adjacente (fonte B); o público-alvo é mais sensível a preço que o de
