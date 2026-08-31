@@ -185,29 +185,39 @@ Isso complementa, não substitui, `company/logs/events.jsonl` (que registra
 AÇÃO/resultado com model/effort, pra auditoria de consumo) — o chat registra
 a CONVERSA entre agentes; o events.jsonl registra o que foi feito.
 
-## Fallback automático de limite (fixado 2026-08-31, corrigido 2026-08-31)
+## Fallback automático de limite (fixado 2026-08-31, versão final)
 
 `scripts/claude-headless.js` detecta o limite de verdade -- chama `claude -p`
-(modo não-interativo do proprio CLI) e le a saida real. So aciona o fallback
-xKiro quando o texto bate com as assinaturas REAIS que o Claude Code emite ao
-estourar o limite (confirmadas em issues do proprio repo
-`anthropics/claude-code`, não chutadas): "usage limit", "out of extra usage",
-"usage_limit_reached", "limit will reset at". Qualquer OUTRA falha (claude
-nao instalado, rede, OAuth expirado) NAO aciona fallback -- fica so
-registrada, porque o pedido foi "olhar se o limite bateu ou nao", nao
-"qualquer falha".
+e le a saida real. So aciona o fallback quando bate com a assinatura REAL
+que o Claude Code emite ("usage limit", "out of extra usage",
+"usage_limit_reached", "limit will reset at" -- confirmadas em issues do
+proprio repo `anthropics/claude-code`, nao chutadas). Qualquer outra falha
+(claude nao instalado, OAuth expirado, rede) NAO aciona fallback.
 
 Não existe hook/API que exponha "quanto do limite ja foi usado" ANTES de
-tentar (confirmado: issue `anthropics/claude-code#38380`, ainda em aberto) --
-por isso a deteccao e' sempre reativa (tenta, le a resposta), nunca
-preditiva. E' assim que sistemas reais como OmniRoute/free-claude-code
-funcionam tambem -- a diferenca e' que eles se colocam como PROXY no meio do
-trafego (Claude Code aponta pra eles em vez de pra Anthropic), enquanto aqui
-a deteccao e' via saida de um `claude -p` headless chamado pelo
-`scripts/auto-worker.js` a cada tick da VM -- nao muda a configuracao de
-rede desta sessao ao vivo.
+tentar (issue `anthropics/claude-code#38380`, em aberto) -- a deteccao e'
+sempre reativa. Sistemas reais (OmniRoute, free-claude-code) resolvem isso
+se colocando como PROXY no meio do trafego (Claude Code aponta pra eles em
+vez de pra Anthropic) -- mudanca de rede global que nao foi feita aqui sem
+confirmacao explicita do fundador.
 
-`scripts/auto-worker.js` roda a cada tick (via `deploy/vm-tick.sh`): pra cada
-TASK `running`, tenta `claude -p` de verdade primeiro; so escala pro xKiro se
-detectar o sinal real de limite. Sempre marca `review` (nunca `done`
-sozinho). Todo pedido/resultado no Chat Geral.
+**Janela de limite (instantâneo, nao espera):** `scripts/auto-worker.js`
+testa `claude -p` **uma vez por rodada** (nao uma vez por TASK). Se detectar
+o limite, ISSO JA VALE pro lote inteiro -- todas as TASKs `running` daquela
+rodada vão direto pro xKiro na hora, sem fila de espera. Fica guardado em
+`company/state/auto-worker-throttle.json`; nos ticks seguintes (a cada ~3min
+via `deploy/vm-tick.sh`), enquanto a janela estiver ativa (30min por
+padrão), NEM TENTA `claude -p` de novo -- vai direto pro fallback, sem
+parar de processar as TASKs. Depois da janela, testa sozinho de novo; se
+Claude voltou, usa normal; se ainda bloqueado, detecta e estende.
+
+**Cota compartilhada:** `claude -p` usa a MESMA conta das sessões
+interativas (Claude Code, Claude.ai, Desktop, Cowork compartilham o limite
+de 5h/semanal) -- por isso o teste e' 1x por rodada, nao 1x por TASK.
+Geração de imagem (Pollinations/Gemini) nunca usa cota do Claude.
+
+Sempre marca `review` (nunca `done` sozinho). Todo pedido/resultado no Chat
+Geral. Testado ao vivo: cenário sem limite tentou Claude normalmente (~7s
+por TASK, nao forcou fallback num erro de OAuth que não era limite);
+cenário com janela ativa processou 4 TASKs em 31 milissegundos (sem tentar
+Claude nenhuma vez).

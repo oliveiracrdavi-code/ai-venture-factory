@@ -110,3 +110,14 @@
 {"ts":"2026-08-31T14:06:13.230Z","agent":"A44","task":"TASK-9002","type":"auto-worker-skip","tool":"auto-worker.js","summary":"claude-error: erro-desconhecido","model":"n/a","effort":"n/a"}
 {"ts":"2026-08-31T14:06:52.084Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (1 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
 {"ts":"2026-08-31T14:06:52.238Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (1 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
+{"ts":"2026-08-31T14:06:52.316Z","agent":"publish-state","task":null,"type":"publish","tool":"publish-state.js","summary":"docs/ atualizado (dashboard + estado) (sem push)","model":"system","effort":"n/a"}
+{"ts":"2026-08-31T18:44:30.219Z","agent":"A08","task":"TASK-0009","type":"auto-worker-skip","tool":"auto-worker.js","summary":"claude-error: erro-desconhecido","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:44:36.430Z","agent":"A24","task":"TASK-0010","type":"auto-worker-skip","tool":"auto-worker.js","summary":"claude-error: erro-desconhecido","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:44:44.430Z","agent":"A08","task":"TASK-0011","type":"auto-worker-skip","tool":"auto-worker.js","summary":"claude-error: erro-desconhecido","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:44:54.842Z","agent":"A44","task":"TASK-9003","type":"auto-worker-skip","tool":"auto-worker.js","summary":"claude-error: erro-desconhecido","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:44:55.885Z","agent":"A08","task":"TASK-0009","type":"auto-worker-skip","tool":"auto-worker.js","summary":"xkiro-fallback: XKIRO_API_KEY nao configurada (ver aba Conexoes)","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:44:55.889Z","agent":"A24","task":"TASK-0010","type":"auto-worker-skip","tool":"auto-worker.js","summary":"xkiro-fallback: XKIRO_API_KEY nao configurada (ver aba Conexoes)","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:44:55.910Z","agent":"A08","task":"TASK-0011","type":"auto-worker-skip","tool":"auto-worker.js","summary":"xkiro-fallback: XKIRO_API_KEY nao configurada (ver aba Conexoes)","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:44:55.916Z","agent":"A44","task":"TASK-9003","type":"auto-worker-skip","tool":"auto-worker.js","summary":"xkiro-fallback: XKIRO_API_KEY nao configurada (ver aba Conexoes)","model":"n/a","effort":"n/a"}
+{"ts":"2026-08-31T18:45:45.116Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (1 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}
+{"ts":"2026-08-31T18:45:45.298Z","agent":"snapshot","task":null,"type":"snapshot","tool":"snapshot.js","summary":"agents.json (49) e pipeline.json (1 projeto(s)) regenerados","model":"claude-sonnet-5","effort":"medium"}

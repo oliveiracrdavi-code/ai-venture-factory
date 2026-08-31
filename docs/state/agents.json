@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T14:06:52.223Z",
+  "generated_at": "2026-08-31T18:45:45.282Z",
   "count": 49,
   "agents": [
     {
@@ -117,9 +117,9 @@
       "status": "trabalhando",
       "task_atual": "TASK-0009",
       "ultima_acao": {
-        "ts": "2026-08-31T14:06:04.044Z",
+        "ts": "2026-08-31T18:44:55.910Z",
         "type": "auto-worker-skip",
-        "summary": "claude-error: erro-desconhecido"
+        "summary": "xkiro-fallback: XKIRO_API_KEY nao configurada (ver aba Conexoes)"
       }
     },
     {
@@ -333,9 +333,9 @@
       "status": "trabalhando",
       "task_atual": "TASK-0010",
       "ultima_acao": {
-        "ts": "2026-08-31T14:05:49.679Z",
+        "ts": "2026-08-31T18:44:55.889Z",
         "type": "auto-worker-skip",
-        "summary": "claude-error: erro-desconhecido"
+        "summary": "xkiro-fallback: XKIRO_API_KEY nao configurada (ver aba Conexoes)"
       }
     },
     {
@@ -597,9 +597,9 @@
       "status": "idle",
       "task_atual": null,
       "ultima_acao": {
-        "ts": "2026-08-31T14:06:13.230Z",
+        "ts": "2026-08-31T18:44:55.916Z",
         "type": "auto-worker-skip",
-        "summary": "claude-error: erro-desconhecido"
+        "summary": "xkiro-fallback: XKIRO_API_KEY nao configurada (ver aba Conexoes)"
       }
     },
     {
