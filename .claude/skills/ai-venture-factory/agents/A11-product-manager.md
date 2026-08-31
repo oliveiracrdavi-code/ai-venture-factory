@@ -22,7 +22,7 @@ histórias com critérios de aceite testáveis e north-star metric.
 ## Entradas
 - `company/decisions/ceo-app-XXX.md`
 - `company/projects/app-XXX/brief.md` e `personas.md`
-- `company/templates/` (brief/score como referência de contexto)
+- `.claude/skills/ai-venture-factory/reference/templates/` (brief/score como referência de contexto)
 
 ## Saídas
 - Seção de PRD/MVP/histórias de `company/projects/app-XXX/blueprint.md`

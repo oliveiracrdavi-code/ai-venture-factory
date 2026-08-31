@@ -22,7 +22,7 @@ que o humano aprova **antes** de qualquer automação tocar no PC.
 ## Entradas
 - `company/projects/app-XXX/blueprint.md` (integrações previstas)
 - `company/projects/app-XXX/architecture.md`
-- `company/org/permissoes.md`
+- `.claude/skills/ai-venture-factory/reference/org/permissoes.md`
 
 ## Saídas
 - `company/projects/app-XXX/integration-plan.md`

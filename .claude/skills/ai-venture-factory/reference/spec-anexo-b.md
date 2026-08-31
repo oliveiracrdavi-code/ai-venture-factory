@@ -1,6 +1,6 @@
 # ANEXO B — Modelos & Stacks de Skills por Agente
 
-Anexo da `company/spec.md`. Duas partes:
+Anexo da `.claude/skills/ai-venture-factory/reference/spec.md`. Duas partes:
 
 - **PARTE B.1** — verbatim do "Anexo de Inteligência" (metodologia de escolha de
   modelo, clusters, tabela dos 49, effort, fallback Pro, e as capacidades

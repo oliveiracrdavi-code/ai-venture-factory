@@ -24,7 +24,7 @@ cenários bull/base/bear e um veredito de viabilidade econômica.
 ## Entradas
 - `company/tasks/TASK-XXXX.md`
 - `company/projects/app-XXX/brief.md` (mercado de A01, dor de A04, concorrência de A02)
-- `company/templates/score.md`
+- `.claude/skills/ai-venture-factory/reference/templates/score.md`
 - Benchmarks públicos de pricing/churn do segmento
 
 ## Saídas

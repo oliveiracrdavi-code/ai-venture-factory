@@ -6,13 +6,14 @@
   "type": "commonjs",
   "engines": { "node": ">=18" },
   "scripts": {
-    "activate": "node scripts/activate.js",
-    "serve": "node scripts/server.js 8080",
-    "tick": "node scripts/orchestrator.js tick",
-    "watch": "node scripts/orchestrator.js --watch",
-    "snapshot": "node scripts/snapshot.js",
-    "sprites": "node scripts/gen-sprites.js",
-    "seed": "node scripts/seed-tasks.js"
+    "activate": "node .claude/skills/ai-venture-factory/scripts/activate.js",
+    "serve": "node .claude/skills/ai-venture-factory/scripts/server.js 8080",
+    "tick": "node .claude/skills/ai-venture-factory/scripts/orchestrator.js tick",
+    "watch": "node .claude/skills/ai-venture-factory/scripts/orchestrator.js --watch",
+    "snapshot": "node .claude/skills/ai-venture-factory/scripts/snapshot.js",
+    "sprites": "node .claude/skills/ai-venture-factory/scripts/gen-sprites.js",
+    "seed": "node .claude/skills/ai-venture-factory/scripts/seed-tasks.js",
+    "publish-state": "node .claude/skills/ai-venture-factory/scripts/publish-state.js"
   },
   "dependencies": {},
   "devDependencies": {}

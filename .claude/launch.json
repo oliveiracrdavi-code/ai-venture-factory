@@ -4,7 +4,7 @@
     {
       "name": "ai-venture-factory",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["scripts/server.js", "8080"],
+      "runtimeArgs": [".claude/skills/ai-venture-factory/scripts/server.js", "8080"],
       "port": 8080
     }
   ]

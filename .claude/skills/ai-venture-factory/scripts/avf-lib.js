@@ -6,10 +6,24 @@
 var fs = require('fs');
 var path = require('path');
 
-var ROOT = path.resolve(__dirname, '..');
+// SKILL_ROOT: onde o codigo/skill vive (bundled, somente leitura) -
+//   .claude/skills/ai-venture-factory/{scripts,agents,dashboard,reference}
+// PROJECT_ROOT: o projeto ALVO onde a fabrica escreve estado e codigo -
+//   por padrao o cwd de quem chamou o script (a sessao do Claude Code no
+//   projeto do usuario); pode ser forcado com AVF_PROJECT_ROOT.
+// Isso e o que torna a skill portatil: dois clones diferentes (sessoes em
+// projetos diferentes) tem o MESMO SKILL_ROOT-relativo (scripts/agentes) mas
+// cada um escreve `company/` no seu proprio PROJECT_ROOT.
+var SKILL_ROOT = path.resolve(__dirname, '..');
+var PROJECT_ROOT = path.resolve(process.env.AVF_PROJECT_ROOT || process.cwd());
+var ROOT = PROJECT_ROOT; // nome historico: "root" sempre foi o dono do `company/`
 var P = {
   root: ROOT,
-  agentsDir: path.join(ROOT, '.claude', 'agents'),
+  skillRoot: SKILL_ROOT,
+  projectRoot: PROJECT_ROOT,
+  agentsDir: path.join(SKILL_ROOT, 'agents'),
+  dashboardDir: path.join(SKILL_ROOT, 'dashboard'),
+  referenceDir: path.join(SKILL_ROOT, 'reference'),
   tasksDir: path.join(ROOT, 'company', 'tasks'),
   projectsDir: path.join(ROOT, 'company', 'projects'),
   decisionsDir: path.join(ROOT, 'company', 'decisions'),
@@ -23,6 +37,7 @@ var P = {
   agentsJson: path.join(ROOT, 'company', 'state', 'agents.json'),
   pipelineJson: path.join(ROOT, 'company', 'state', 'pipeline.json'),
   envFile: path.join(ROOT, '.env'),
+  settingsFile: path.join(ROOT, '.claude', 'settings.json'),
 };
 
 // ---------------------------------------------------------------------------
@@ -219,7 +234,7 @@ function writeJSON(fp, obj) {
 }
 
 module.exports = {
-  P: P, ROOT: ROOT,
+  P: P, ROOT: ROOT, SKILL_ROOT: SKILL_ROOT, PROJECT_ROOT: PROJECT_ROOT,
   maskSecrets: maskSecrets, maskDeep: maskDeep, envSecretValues: envSecretValues,
   parseFrontmatter: parseFrontmatter, readAgents: readAgents, readTasks: readTasks,
   writeTaskField: writeTaskField, appendTaskNote: appendTaskNote, nextTaskId: nextTaskId,

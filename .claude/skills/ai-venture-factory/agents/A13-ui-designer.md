@@ -22,7 +22,7 @@ de identidade e a spec dos sprites — pronto para o A14 implementar.
 
 ## Entradas
 - `company/projects/app-XXX/blueprint.md` (PRD de A11, UX de A12)
-- `company/spec.md` SEÇÃO 5 (identidade visual dos agentes/sprites)
+- `.claude/skills/ai-venture-factory/reference/spec.md` SEÇÃO 5 (identidade visual dos agentes/sprites)
 - Referências de estilo (moodboard, se houver)
 
 ## Saídas

@@ -10,33 +10,44 @@ plano do Claude. Nada de nuvem paga, nada de `npm install`.
 
 ---
 
-## ⚡ Ativar numa sessão do Claude (nuvem ou local)
+## ⚡ Ativar numa sessão do Claude (nuvem ou local, em QUALQUER projeto)
 
-Abra este repositório numa sessão do **Claude Code** e diga:
+A skill é **portátil**: pode ser usada dentro deste repositório OU dentro de
+**qualquer outro projeto seu**. Numa sessão do Claude Code em qualquer
+projeto, mande o link deste repositório e diga:
 
 > **ative o ai venture factory**
 
-A skill [`.claude/skills/ai-venture-factory`](.claude/skills/ai-venture-factory/SKILL.md)
-faz o resto:
+Se a skill ainda não estiver no projeto atual, a sessão clona este
+repositório para dentro dele em `.claude/skills/ai-venture-factory/` (não
+mexe em mais nada) e a partir daí:
 
-1. roda `node scripts/activate.js` (bootstrap idempotente: pastas de estado,
-   49 sprites, `snapshot`);
-2. sobe o painel via `preview_start` (config `ai-venture-factory` em
-   [`.claude/launch.json`](.claude/launch.json), porta **8080**);
+1. roda `node .claude/skills/ai-venture-factory/scripts/activate.js`
+   (bootstrap idempotente: pastas de estado do projeto atual, hooks de log e
+   `launch.json` instalados automaticamente, 49 sprites, `snapshot`);
+2. sobe o painel via `preview_start` (config `ai-venture-factory`, porta
+   **8080**);
 3. te devolve **o link do painel** — numa sessão na nuvem o preview vira um
    link compartilhável; local, é `http://127.0.0.1:8080`.
+4. se o projeto atual já tiver código (README/`package.json`), a fábrica
+   detecta e **integra o pipeline a esse projeto real** — pesquisa o nicho
+   dele e, a partir do gate G6, constrói/mergeia código de verdade na raiz
+   desse repositório (não numa simulação à parte).
 
-Depois, se quiser rodar o projeto piloto:
+Depois, se quiser rodar o piloto:
 
 > **começar o piloto** — (roda `seed-tasks.js` + `orchestrator.js tick`)
+
+Veja o passo a passo completo em
+[`.claude/skills/ai-venture-factory/SKILL.md`](.claude/skills/ai-venture-factory/SKILL.md).
 
 ---
 
 ## Rodar à mão (sem a skill)
 
 ```bash
-node scripts/activate.js        # bootstrap
-node scripts/server.js 8080     # painel em http://127.0.0.1:8080
+node .claude/skills/ai-venture-factory/scripts/activate.js   # bootstrap
+node .claude/skills/ai-venture-factory/scripts/server.js 8080 # painel em http://127.0.0.1:8080
 ```
 
 Ou pelos scripts do `package.json`: `npm run activate`, `npm run serve`,
@@ -45,7 +56,7 @@ Ou pelos scripts do `package.json`: `npm run activate`, `npm run serve`,
 ### Orquestrador (fila de tarefas)
 
 ```bash
-node scripts/orchestrator.js tick
+node .claude/skills/ai-venture-factory/scripts/orchestrator.js tick
 ```
 
 `tick` = avança a fila **um passo** e imprime o que mudou (modo padrão).
@@ -59,8 +70,8 @@ volta ao bloco anterior. Ao ativar um agente, imprime o `model`/`effort`
 
 ## Painel (6 páginas, polling 2,5s)
 
-Servido por `scripts/server.js` — escuta **só** em `127.0.0.1`, serve **só** uma
-allowlist (`dashboard/`, `company/state/`, `company/metrics/`,
+Servido por `scripts/server.js` da skill — escuta **só** em `127.0.0.1`, serve
+**só** uma allowlist (dashboard da skill, `company/state/`, `company/metrics/`,
 `company/logs/events.jsonl`, `company/marketing/posts.jsonl`,
 `company/logs/chats/`, `company/projects/`); tudo mais → **403**.
 
@@ -98,24 +109,29 @@ Aprova **só** com `>= 85` **e zero risco crítico**.
 
 ```
 .claude/
-  agents/     A01..A49-<slug>.md  + _TEMPLATE.md   (49 agentes)
-  skills/ai-venture-factory/SKILL.md               (ativação)
-  launch.json                                      (preview do painel)
-  settings.json                                    (hooks de log, portável)
-company/
-  spec.md                 especificação verbatim (14 partes)
-  spec-anexo-b.md          modelo/effort/fallback + stack de skills dos 49
+  skills/ai-venture-factory/     a SKILL PORTATIL — auto-contida, clonavel em
+                                  qualquer projeto (git clone <este repo>
+                                  .claude/skills/ai-venture-factory)
+    SKILL.md                     ativação (instala, integra, roda o pipeline)
+    agents/     A01..A49-<slug>.md  + _TEMPLATE.md   (49 agentes)
+    reference/  spec.md, spec-anexo-b.md, org/, templates/  (specs, só leitura)
+    dashboard/  index.html · styles.css · app.js · sprites/ (49 SVG)
+    scripts/    activate · server · orchestrator · snapshot · logger ·
+                seed-tasks · gen-sprites · publish-state · avf-lib
+  launch.json                    (preview do painel, instalado por activate.js)
+  settings.json                  (hooks de log, instalado por activate.js)
+company/                         ESTADO DO PROJETO ATUAL (nunca da skill)
   memory/                 principios.md, padroes.md, aprendizados.md
-  org/                    organograma.md, permissoes.md (N1–N5), skills-fundador.md
-  templates/              TASK.md, brief.md, score.md
-  projects/app-XXX/       brief, score, blueprint, ..., postmortem
+  projects/<slug>/        idea, brief, score, blueprint, ..., postmortem
   tasks/                  TASK-XXXX.md  (frontmatter: id/agent/status/priority/gate)
   decisions/ inbox/ security/ marketing/{drafts,outbox} reports/
   logs/                   events.jsonl (+ model/effort) · chats/<id>.jsonl
   metrics/metrics.json    state/{agents,pipeline,security}.json  (gerado)
-dashboard/                index.html · styles.css · app.js · sprites/ (49 SVG)
-scripts/                  activate · server · orchestrator · snapshot · logger · seed-tasks · gen-sprites
 ```
+
+`scripts/avf-lib.js` resolve dois "roots": `SKILL_ROOT` (código/agentes/painel,
+dentro da skill, só leitura) e `PROJECT_ROOT` (o `company/` do projeto onde a
+sessão está rodando — pode ser este repositório ou qualquer outro).
 
 ---
 

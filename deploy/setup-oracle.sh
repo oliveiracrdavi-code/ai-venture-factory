@@ -85,7 +85,7 @@ chmod +x "$DIR/deploy/tunnel-wrap.sh" || true
 
 ###############################################################################
 say "5/7  bootstrap (activate.js: pastas de estado, 49 sprites, snapshot)"
-( cd "$DIR" && "$NODE_BIN" scripts/activate.js ) || true
+( cd "$DIR" && "$NODE_BIN" .claude/skills/ai-venture-factory/scripts/activate.js ) || true
 
 ###############################################################################
 say "6/7  systemd: avf-dashboard, avf-tunnel, avf-tick"
@@ -102,7 +102,7 @@ Type=simple
 User=${USER_NAME}
 WorkingDirectory=${DIR}
 Environment=PATH=${NODE_DIR}:/usr/local/bin:/usr/bin:/bin
-ExecStart=${NODE_BIN} ${DIR}/scripts/server.js ${PORT}
+ExecStart=${NODE_BIN} ${DIR}/.claude/skills/ai-venture-factory/scripts/server.js ${PORT}
 Restart=always
 RestartSec=3
 

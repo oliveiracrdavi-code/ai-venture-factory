@@ -24,7 +24,7 @@ forças/fraquezas por player e onde há brecha real para diferenciar.
 - `company/tasks/TASK-XXXX.md`
 - `company/projects/app-XXX/idea.md`
 - Seção de mercado do `brief.md` (de A01), quando já disponível
-- `company/templates/brief.md`
+- `.claude/skills/ai-venture-factory/reference/templates/brief.md`
 - Fontes públicas: pricing pages, changelogs, reviews, listagens de loja
 
 ## Saídas

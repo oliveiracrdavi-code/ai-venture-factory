@@ -1,6 +1,6 @@
 # Princípios operacionais — AI VENTURE FACTORY
 
-Fonte: `company/spec.md` SEÇÃO 1. Estes 10 princípios valem para todos os
+Fonte: `.claude/skills/ai-venture-factory/reference/spec.md` SEÇÃO 1. Estes 10 princípios valem para todos os
 agentes, todas as partes, sempre.
 
 1. **Ciclo completo.** A empresa pesquisa ideias de apps, valida, constrói,

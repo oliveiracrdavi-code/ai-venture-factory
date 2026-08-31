@@ -12,7 +12,6 @@
  * NUNCA lanca excecao para o hook: qualquer erro e engolido e sai 0.
  */
 var fs = require('fs');
-var path = require('path');
 var L = require('./avf-lib');
 
 function readStdin() {
@@ -26,7 +25,7 @@ function detectModel() {
   var envM = process.env.AVF_MODEL || process.env.CLAUDE_MODEL || process.env.ANTHROPIC_MODEL;
   if (envM) return envM;
   try {
-    var s = JSON.parse(fs.readFileSync(path.join(L.ROOT, '.claude', 'settings.json'), 'utf8'));
+    var s = JSON.parse(fs.readFileSync(L.P.settingsFile, 'utf8'));
     if (s && s.model) return s.model;
   } catch (_) {}
   return 'claude-sonnet-5';

@@ -24,7 +24,7 @@ personas e mapa de fricção — a base que o CEO usa para pontuar "dor" (peso 2
 - `company/tasks/TASK-XXXX.md`
 - `company/projects/app-XXX/idea.md`
 - `company/projects/app-XXX/trend-signals.md` (de A03), quando disponível
-- `company/templates/brief.md`
+- `.claude/skills/ai-venture-factory/reference/templates/brief.md`
 - Fontes públicas: reviews, fóruns, comunidades, threads de suporte
 
 ## Saídas

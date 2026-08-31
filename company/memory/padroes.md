@@ -15,7 +15,7 @@ Convenções fixas para todos os agentes. Complementa `principios.md`.
 
 Frontmatter obrigatório: `id, agent, status, priority, gate, input, output,
 acceptance`. `status ∈ {queued, running, blocked, review, done, rejected}`.
-Template em `company/templates/TASK.md`.
+Template em `.claude/skills/ai-venture-factory/reference/templates/TASK.md`.
 
 ## Fila / orquestrador
 
@@ -86,12 +86,12 @@ gateway real — regra permanente.
 
 ## Permissões
 
-5 níveis N1–N5 descritos em `company/org/permissoes.md`. **Cada** arquivo
+5 níveis N1–N5 descritos em `.claude/skills/ai-venture-factory/reference/org/permissoes.md`. **Cada** arquivo
 `.md` de agente declara seu nível no cabeçalho (campo `Nível`).
 
 ## Modelo / effort / skills por agente (ANEXO B)
 
-`company/spec-anexo-b.md` define, para os 49 agentes: modelo (8 Opus · 38
+`.claude/skills/ai-venture-factory/reference/spec-anexo-b.md` define, para os 49 agentes: modelo (8 Opus · 38
 Sonnet · 3 Haiku), effort, fallback Pro (Sonnet+high quando não há folga de
 Opus) e **STACK DE SKILLS REAIS** (10 por agente, `[I]` já instalada / `[+]`
 instalar). Cada `.md` de agente carrega as seções `MODELO & EFFORT` e

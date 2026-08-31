@@ -251,7 +251,7 @@ function openAgent(id) {
     '<div><div>' + esc(a.bloco) + '</div><div>' + statusBadge(a.status) + ' · TASK <b>' + esc(a.task_atual || '—') + '</b></div>' +
     '<div class="muted">gate ' + esc(a.gate_principal) + ' · model <b>' + esc(a.modelo) + '</b> · effort <b>' + esc(a.effort) + '</b> · fallback ' + esc(a.fallback_pro) + '</div></div></div>' +
     '<div class="sh-card"><div class="sh-card-head">Permissões (nível ' + esc(a.nivel) + ')</div><div class="sh-card-body">' + esc(NIVEL_DESC[a.nivel] || '') +
-    '<p class="muted">Ferramentas: ver .claude/agents/' + esc(a.id) + '-' + esc(a.slug) + '.md. Fallback nativo + skill_fallback se skill/integração indisponível.</p></div></div>' +
+    '<p class="muted">Ferramentas: ver .claude/skills/ai-venture-factory/agents/' + esc(a.id) + '-' + esc(a.slug) + '.md. Fallback nativo + skill_fallback se skill/integração indisponível.</p></div></div>' +
     '<div class="sh-card"><div class="sh-card-head">Artefatos / marcos</div><div class="sh-card-body">' + (arts ? '<ul>' + arts + '</ul>' : '<p class="empty">nenhum ainda</p>') + '</div></div>' +
     '<div class="sh-card"><div class="sh-card-head">Stream (últimas 50 ações)</div><div class="sh-card-body sh-scroll" style="max-height:320px">' + stream + '</div></div>' +
     '<div class="filters" style="margin-top:10px"><button class="sh-btn ghost" data-pause="' + esc(a.id) + '">Pausar</button>' +

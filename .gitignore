@@ -13,7 +13,7 @@ npm-debug.log*
 Thumbs.db
 *.swp
 
-# estado derivado (regenerado por scripts/activate.js e snapshot.js)
+# estado derivado (regenerado por .claude/skills/ai-venture-factory/scripts/{activate,snapshot}.js)
 company/state/*.json
 
 # artefatos de execucao do piloto (descomente se nao quiser versionar as rodadas)

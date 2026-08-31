@@ -45,7 +45,7 @@ repita APENAS essa parte com Opus + high (se disponível) e volte ao Sonnet depo
 RESUMO DO PLANO: Opus (se existir folga) só nas partes 6 e 10; high no começo e
 nas decisões críticas; medium na construção; low na rotina.
 
-SE ESTA SESSÃO COMEÇOU DO ZERO e já existir company/spec.md no repositório:
+SE ESTA SESSÃO COMEÇOU DO ZERO e já existir .claude/skills/ai-venture-factory/reference/spec.md no repositório:
 leia-o, me mostre em qual parte paramos (pelo último relatório em
 company/logs/) e exiba o aviso daquela parte. Não recomece do zero.
 
@@ -90,7 +90,7 @@ ai-venture-factory/
 └── README.md
 
 ============================================================
-SEÇÃO 3 — OS 49 AGENTES (1 arquivo .md em .claude/agents/ para CADA,
+SEÇÃO 3 — OS 49 AGENTES (1 arquivo .md em .claude/skills/ai-venture-factory/agents/ para CADA,
 com Identidade, Missão, Entradas, Saídas, Ferramentas, Proibições,
 Formato de resposta e Métricas)
 ============================================================
@@ -225,7 +225,7 @@ SEÇÃO 7 — LOGS / OBSERVABILIDADE
 SEÇÃO 8 — AS 14 PARTES (escopo de cada uma; o aviso/lembrete de
 model/effort vem da SEÇÃO 0)
 ============================================================
-PARTE 1 — FUNDAÇÃO: salve esta spec VERBATIM em company/spec.md (PRIMEIRA
+PARTE 1 — FUNDAÇÃO: salve esta spec VERBATIM em .claude/skills/ai-venture-factory/reference/spec.md (PRIMEIRA
 ação); crie pastas, README.md, memory/, org/permissoes.md, templates de
 TASK/brief/score.
 PARTE 2 — AGENTES: template + A01–A05, pare para eu validar 1 exemplo;

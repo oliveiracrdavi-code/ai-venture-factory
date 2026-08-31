@@ -24,7 +24,7 @@ bastante para o CEO decidir.
 ## Entradas
 - `company/tasks/TASK-XXXX.md` (a tarefa que ativa o agente)
 - `company/projects/app-XXX/idea.md` (problema, público, hipótese do G0)
-- `company/templates/brief.md` (estrutura de saída)
+- `.claude/skills/ai-venture-factory/reference/templates/brief.md` (estrutura de saída)
 - Fontes públicas web (pesquisa, relatórios, pricing pages, buscas)
 
 ## Saídas

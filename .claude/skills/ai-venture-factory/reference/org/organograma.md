@@ -1,7 +1,7 @@
 # Organograma — AI VENTURE FACTORY
 
 49 agentes em 8 blocos funcionais. IDs `A01`–`A49` são estáveis; o arquivo de
-cada um é `.claude/agents/AXX-<slug>.md`.
+cada um é `.claude/skills/ai-venture-factory/agents/AXX-<slug>.md`.
 
 ```
 Founder / Humano (você)

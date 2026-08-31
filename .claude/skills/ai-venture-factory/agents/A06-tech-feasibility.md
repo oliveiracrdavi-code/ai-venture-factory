@@ -23,7 +23,7 @@ parecer fácil/médio/difícil, fatiamento de MVP, riscos e PoC quando útil.
 ## Entradas
 - `company/tasks/TASK-XXXX.md`
 - `company/projects/app-XXX/brief.md` (dores de A04, concorrência de A02)
-- `company/templates/score.md`
+- `.claude/skills/ai-venture-factory/reference/templates/score.md`
 - Documentação pública de libs/APIs candidatas
 
 ## Saídas

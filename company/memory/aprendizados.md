@@ -18,7 +18,7 @@ Formato:
 
 **Contexto:** PARTE 1 — infraestrutura inicial.
 **Observado:** Repositório partiu vazio. Spec salva verbatim em
-`company/spec.md`. Estrutura de pastas, README, memory, org e templates
+`.claude/skills/ai-venture-factory/reference/spec.md`. Estrutura de pastas, README, memory, org e templates
 criados. Ajustes 1–9 do plano incorporados no README (spec é verbatim,
 não editável).
 **Ação:** Próximas sessões retomam pela parte indicada no último evento

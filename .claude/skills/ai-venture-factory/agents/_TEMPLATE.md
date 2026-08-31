@@ -2,7 +2,7 @@
 id: A00
 slug: <slug>
 bloco: <1-8> — <nome do bloco>
-nivel: N0            # N1..N5 conforme company/org/permissoes.md
+nivel: N0            # N1..N5 conforme .claude/skills/ai-venture-factory/reference/org/permissoes.md
 modelo: Sonnet       # Opus | Sonnet | Haiku (ANEXO B)
 effort: medium       # low | medium | high
 fallback_pro: —      # ex.: "Sonnet+high" | "medium" | "Haiku" | "—"
@@ -54,7 +54,7 @@ Opus (quando aplicável) só é acionado no gate deste agente; fora disso, roda
 no fallback sem bloquear.
 
 ## STACK DE SKILLS
-Três camadas. **(a)** é o requisito (verbatim do `company/spec-anexo-b.md`).
+Três camadas. **(a)** é o requisito (verbatim do `.claude/skills/ai-venture-factory/reference/spec-anexo-b.md`).
 **(b)** é a camada de implementação preferida do fundador — skills/ferramentas
 já instaladas nesta sessão. **(c)** são sugestões opcionais, só pacotes
 gratuitos e sem conta, instaladas **apenas com aprovação humana**.

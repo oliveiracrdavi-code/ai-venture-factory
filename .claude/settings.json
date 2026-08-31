@@ -4,27 +4,29 @@
     "PostToolUse": [
       {
         "hooks": [
-          { "type": "command", "command": "node scripts/logger.js PostToolUse", "timeout": 5000 }
+          {
+            "type": "command",
+            "command": "node .claude/skills/ai-venture-factory/scripts/logger.js PostToolUse",
+            "timeout": 5000
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "node scripts/logger.js Stop", "timeout": 5000 }
+          {
+            "type": "command",
+            "command": "node .claude/skills/ai-venture-factory/scripts/logger.js Stop",
+            "timeout": 5000
+          }
         ]
       }
     ]
   },
   "permissions": {
     "allow": [
-      "Bash(node scripts/activate.js)",
-      "Bash(node scripts/server.js:*)",
-      "Bash(node scripts/orchestrator.js:*)",
-      "Bash(node scripts/snapshot.js)",
-      "Bash(node scripts/seed-tasks.js:*)",
-      "Bash(node scripts/gen-sprites.js)",
-      "Bash(node scripts/logger.js:*)"
+      "Bash(node .claude/skills/ai-venture-factory/scripts/*.js:*)"
     ],
     "deny": [
       "Read(./.env)",

@@ -22,7 +22,7 @@ Entregar o relatório de risco e a nota de "risco legal/segurança" do
 
 ## Entradas
 - `company/projects/app-XXX/brief.md` (público, dados coletados, distribuição)
-- `company/templates/score.md`
+- `.claude/skills/ai-venture-factory/reference/templates/score.md`
 - Termos de uso públicos das plataformas-alvo; texto de LGPD/GDPR
 
 ## Saídas

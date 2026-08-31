@@ -14,11 +14,11 @@ git fetch -q origin main 2>/dev/null || true
 git reset --hard -q origin/main 2>/dev/null || git pull --ff-only -q 2>/dev/null || true
 
 # 2) avança a fila 1 passo (gera company/state via snapshot embutido)
-"$NODE" "$DIR/scripts/orchestrator.js" tick 2>/dev/null || true
+"$NODE" "$DIR/.claude/skills/ai-venture-factory/scripts/orchestrator.js" tick 2>/dev/null || true
 
 # 3) publica o estado para docs/ (+ push se AVF_GIT_PUSH setado no ambiente)
 if [ -n "${AVF_GIT_PUSH:-}" ]; then
-  "$NODE" "$DIR/scripts/publish-state.js" --push 2>/dev/null || true
+  "$NODE" "$DIR/.claude/skills/ai-venture-factory/scripts/publish-state.js" --push 2>/dev/null || true
 else
-  "$NODE" "$DIR/scripts/publish-state.js" 2>/dev/null || true
+  "$NODE" "$DIR/.claude/skills/ai-venture-factory/scripts/publish-state.js" 2>/dev/null || true
 fi

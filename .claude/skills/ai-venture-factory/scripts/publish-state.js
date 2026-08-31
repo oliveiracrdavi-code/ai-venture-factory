@@ -55,11 +55,11 @@ sh(process.execPath, [path.join(__dirname, 'snapshot.js')]);
 // 2. dashboard -> docs/
 fs.mkdirSync(DOCS_STATE, { recursive: true });
 ['index.html', 'styles.css', 'app.js'].forEach(function (f) {
-  copy(path.join(ROOT, 'dashboard', f), path.join(DOCS, f));
+  copy(path.join(L.P.dashboardDir, f), path.join(DOCS, f));
 });
-copyDir(path.join(ROOT, 'dashboard', 'sprites'), path.join(DOCS, 'sprites'));
-copyDir(path.join(ROOT, 'dashboard', 'components'), path.join(DOCS, 'components'));
-try { copyDir(path.join(ROOT, 'dashboard', 'icons'), path.join(DOCS, 'icons')); } catch (_) {}
+copyDir(path.join(L.P.dashboardDir, 'sprites'), path.join(DOCS, 'sprites'));
+copyDir(path.join(L.P.dashboardDir, 'components'), path.join(DOCS, 'components'));
+try { copyDir(path.join(L.P.dashboardDir, 'icons'), path.join(DOCS, 'icons')); } catch (_) {}
 // .nojekyll para o GitHub Pages nao ignorar pastas com _underscore etc
 try { fs.writeFileSync(path.join(DOCS, '.nojekyll'), ''); } catch (_) {}
 

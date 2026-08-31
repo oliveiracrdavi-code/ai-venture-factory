@@ -18,20 +18,20 @@ var path = require('path');
 var cp = require('child_process');
 var L = require('./avf-lib');
 
-var ROOT = path.resolve(__dirname, '..');
+var ROOT = L.P.projectRoot;
 var HOST = '127.0.0.1';
 var PORT = parseInt(process.argv[2], 10) || 8080;
 
 var DIR_ROUTES = [
-  { prefix: '/dashboard/', base: path.join(ROOT, 'dashboard') },
+  { prefix: '/dashboard/', base: L.P.dashboardDir },
   { prefix: '/company/state/', base: path.join(ROOT, 'company', 'state') },
   { prefix: '/company/metrics/', base: path.join(ROOT, 'company', 'metrics') },
   { prefix: '/company/logs/chats/', base: path.join(ROOT, 'company', 'logs', 'chats') },
   { prefix: '/company/projects/', base: path.join(ROOT, 'company', 'projects') },
 ];
 var FILE_ROUTES = {
-  '/': path.join(ROOT, 'dashboard', 'index.html'),
-  '/index.html': path.join(ROOT, 'dashboard', 'index.html'),
+  '/': path.join(L.P.dashboardDir, 'index.html'),
+  '/index.html': path.join(L.P.dashboardDir, 'index.html'),
   '/company/logs/events.jsonl': path.join(ROOT, 'company', 'logs', 'events.jsonl'),
   '/company/marketing/posts.jsonl': path.join(ROOT, 'company', 'marketing', 'posts.jsonl'),
 };

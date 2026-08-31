@@ -1,11 +1,23 @@
 # Permissões — 5 níveis
 
-Todo arquivo `.md` de agente em `.claude/agents/` **declara seu nível no
-cabeçalho** (campo `Nível: NX`). Um agente nunca excede o próprio nível; um
-agente pode abrir mão de capacidades, nunca adicioná-las.
+Todo arquivo `.md` de agente (bundlado na skill, `agents/`) **declara seu
+nível no cabeçalho** (campo `Nível: NX`). Um agente nunca excede o próprio
+nível; um agente pode abrir mão de capacidades, nunca adicioná-las.
 
-Regra transversal: nenhuma ação com efeito colateral fora de `company/`,
-`dashboard/` e `scripts/` acontece sem aprovação humana explícita.
+Regra transversal: nenhuma ação com efeito colateral fora de `company/` (do
+projeto ALVO), do `dashboard/`/`scripts/` da skill, e — a partir do G6 —
+do **código real do projeto ALVO** (a raiz do repositório onde a sessão
+está rodando, fora de `company/`) acontece sem aprovação humana explícita.
+
+**Onde vive o código do "app-XXX":** quando a fábrica é ativada dentro de
+um projeto já existente (a skill clonada em `.claude/skills/ai-venture-factory/`
+de um repositório com código real), "código do app-XXX" nas seções abaixo
+significa **a árvore de arquivos real desse repositório** (src/, package.json,
+etc.), nunca uma pasta dentro de `company/`. `company/` é só gestão
+(specs, decisões, tasks, logs) — nunca abriga produto. Quando não há
+projeto existente (checkout novo e vazio), os agentes de pesquisa propõem
+o nicho e o código passa a existir na mesma raiz assim que A16/A17 iniciam
+o G5/G6.
 
 ---
 

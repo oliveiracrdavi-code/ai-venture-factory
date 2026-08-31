@@ -8,7 +8,7 @@
  *
  * Regras: grade 24x24, shape-rendering="crispEdges" (SEM anti-aliasing),
  * mesmo esqueleto de "aranha-pixel" terracota em todos; diferenca por
- * ACESSORIO + COR DE FUNDO do card (conforme company/spec-anexo-b.md).
+ * ACESSORIO + COR DE FUNDO do card (conforme .claude/skills/ai-venture-factory/reference/spec-anexo-b.md).
  */
 var fs = require('fs');
 var path = require('path');
