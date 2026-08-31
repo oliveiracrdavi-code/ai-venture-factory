@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T00:43:59.261Z",
+  "generated_at": "2026-08-31T00:49:54.515Z",
   "count": 49,
   "agents": [
     {
@@ -596,7 +596,11 @@
       "gate_principal": "G9",
       "status": "idle",
       "task_atual": null,
-      "ultima_acao": null
+      "ultima_acao": {
+        "ts": "2026-08-31T00:47:46.218Z",
+        "type": "credential-requested",
+        "summary": "A44 pediu credencial \"GEMINI_API_KEY\" (gerador de imagem alternativo (nativo Google, modelo de imagem multimodal) quand)"
+      }
     },
     {
       "id": "A45",

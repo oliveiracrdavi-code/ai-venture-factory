@@ -169,3 +169,18 @@ delegação por bloco/agente (modelo + temperatura/top_p/frequência/presença)
 e a especialidade de cada família de modelo. **Pendente de ativação** até a
 chave (rotacionada, nunca colada em chat) ser preenchida em Conexões
 (`CRQ-MTGIKNZF`). Nenhuma chamada real acontece antes disso.
+
+## Chat Geral é o canal único (fixado 2026-08-30)
+
+Toda comunicação entre agentes — pedido, resposta, "estou fazendo X",
+raciocínio relevante pra decisão — passa por
+`node scripts/agent-chat-post.js <de> <para> "<mensagem>" [task_ref]`, que
+grava em `company/logs/chats/<de>.jsonl`. É o mesmo arquivo que a aba
+**Chat geral** do dashboard mescla e mostra ao fundador como espectador.
+**Nenhum agente troca informação "por fora"** — se aconteceu, tem que
+aparecer lá. Isso vale em especial pra pedido de recurso entre agentes (ex.:
+alguém pedindo imagem pro A44 — ver `company/org/model-router-fallback.md`).
+
+Isso complementa, não substitui, `company/logs/events.jsonl` (que registra
+AÇÃO/resultado com model/effort, pra auditoria de consumo) — o chat registra
+a CONVERSA entre agentes; o events.jsonl registra o que foi feito.

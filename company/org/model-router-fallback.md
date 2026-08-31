@@ -35,11 +35,24 @@ de preferência — só por indisponibilidade real, e sempre logado como
 - **SenseNova Flash-Lite** — modelo leve, pra tarefa de baixa complexidade e alto volume (monitoramento, triagem).
 - **Qwen Max/Plus** — geral forte (Max = mais capaz); **Qwen3 Coder Plus** = especializado em código; **Qwen3 VL Plus** = visão-linguagem (entende imagem, não gera); **Qwen3 Omni Flash** = multimodal (texto+áudio+imagem de entrada).
 
-**Sobre geração de imagem:** nenhum modelo desta lista é um gerador de
-imagem de verdade (tipo Stable Diffusion/Flux/DALL-E) — Qwen VL e Omni
-**entendem** imagem, não **criam**. Se for necessário gerar imagem de
-verdade, isso é uma categoria de serviço separada e precisa de aprovação à
-parte — não assumi nenhum substituto aqui.
+**Geração de imagem (corrigido 2026-08-30 — antes era uma lacuna real):**
+Nenhum modelo da lista xKiro acima gera imagem de verdade (Qwen VL/Omni só
+*entendem* imagem). O fundador definiu dois provedores reais e verificados:
+
+- **Pollinations.ai** — gateway real e bem documentado (`gen.pollinations.ai`),
+  compatível OpenAI. Modelos de imagem disponíveis: `flux`, `nanobanana`,
+  `nanobanana-2`, `seedream5`, `gptimage`, `ideogram-v4`, entre outros —
+  ver `GET /image/models` pra lista viva. **Provedor primário** de imagem.
+  Pedido de credencial: `CRQ-MTGIRCV1` (aguardando o fundador colar em Conexões).
+- **Gemini API** (Google, nativo) — **provedor secundário**, usado quando
+  Pollinations não atender ou para geração multimodal nativa. Pedido de
+  credencial: `CRQ-MTGIRCX3`.
+
+**Dono operacional:** A44 content-producer (BLOCO 8) é quem pede imagem pros
+dois provedores — qualquer outro agente que precisar de uma imagem **pede pro
+A44 via Chat Geral** (nunca direto pelo provedor), e a resposta (link do
+asset) também vai pro Chat Geral. Ver regra completa em `padroes.md` §
+"Chat Geral é o canal único".
 
 ## Delegação por bloco (fallback, com temperatura/top_p/frequency/presence)
 
