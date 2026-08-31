@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T00:11:11.437Z",
+  "generated_at": "2026-08-31T00:43:59.261Z",
   "count": 49,
   "agents": [
     {
@@ -117,9 +117,9 @@
       "status": "trabalhando",
       "task_atual": "TASK-0009",
       "ultima_acao": {
-        "ts": "2026-08-31T00:09:07.459Z",
-        "type": "task-start",
-        "summary": "ativada no gate G0 (app-001)"
+        "ts": "2026-08-31T00:42:33.966Z",
+        "type": "credential-requested",
+        "summary": "A08 pediu credencial \"XKIRO_API_KEY\" (fallback de modelo gratuito quando Opus/Sonnet da Anthropic estiver indisponivel)"
       }
     },
     {

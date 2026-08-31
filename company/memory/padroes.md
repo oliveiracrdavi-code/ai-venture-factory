@@ -160,3 +160,12 @@ checklist antes de ser dada como pronta.
 `company/design/padrao-minimo-video-divulgacao.pdf` fazem o mesmo pra vídeo de
 divulgação (BLOCO 8 — A44/A45/A46): piso mínimo obrigatório, checklist na
 última página do PDF, reprovação automática com 3+ itens falhos.
+
+## Roteador de modelo gratuito (fallback, fixado 2026-08-30)
+
+`company/org/model-router-fallback.md` documenta a 4ª camada de fallback
+(abaixo do `fallback_pro` do Anexo B): xKiro como gateway free-tier, com
+delegação por bloco/agente (modelo + temperatura/top_p/frequência/presença)
+e a especialidade de cada família de modelo. **Pendente de ativação** até a
+chave (rotacionada, nunca colada em chat) ser preenchida em Conexões
+(`CRQ-MTGIKNZF`). Nenhuma chamada real acontece antes disso.
