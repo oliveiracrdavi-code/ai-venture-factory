@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-30T23:58:29.912Z",
+  "generated_at": "2026-08-31T00:11:11.437Z",
   "count": 49,
   "agents": [
     {
@@ -117,9 +117,9 @@
       "status": "trabalhando",
       "task_atual": "TASK-0009",
       "ultima_acao": {
-        "ts": "2026-08-30T22:32:01.256Z",
+        "ts": "2026-08-31T00:09:07.459Z",
         "type": "task-start",
-        "summary": "ativada no gate G2 (app-001)"
+        "summary": "ativada no gate G0 (app-001)"
       }
     },
     {
@@ -330,12 +330,12 @@
       "effort": "high",
       "fallback_pro": "medium",
       "gate_principal": "G6",
-      "status": "na-fila",
+      "status": "trabalhando",
       "task_atual": "TASK-0010",
       "ultima_acao": {
-        "ts": "2026-08-30T23:23:29.099Z",
-        "type": "credential-filled",
-        "summary": "Fundador preencheu Resend (****abcd) -> RESEND.env"
+        "ts": "2026-08-31T00:09:07.456Z",
+        "type": "task-start",
+        "summary": "ativada no gate G0 (app-001)"
       }
     },
     {
