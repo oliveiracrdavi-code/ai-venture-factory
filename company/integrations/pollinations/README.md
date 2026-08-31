@@ -1,7 +1,7 @@
 # A44 — pollinations (geração de imagem/vídeo/áudio)
 
 **Repo/API:** `gen.pollinations.ai` (pollinations/pollinations no GitHub) ·
-**Agente dono:** A44 content-producer · **Estado:** stub — aguardando credencial.
+**Agente dono:** A44 content-producer · **Estado:** código pronto (`scripts/generate-image.js`) — aguardando credencial.
 
 ## Para quê
 Gerar imagem, vídeo, áudio e embeddings sob demanda pra material de

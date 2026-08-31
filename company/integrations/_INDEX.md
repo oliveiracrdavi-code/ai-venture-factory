@@ -20,7 +20,7 @@ sem gate humano.** Estado de cada uma: `desligada` até você habilitar.
 | A12 | `simple-icons/` | ícones de marca (subset local) | dashboard | **aplicada** (subset) |
 | A13 | `component-store/react-bits.md` | loja de componentes animados (port React→vanilla) | A14 | **aplicada** (port) |
 | A14 | `component-store/magic-mcp.md` | MCP que gera componentes UI | A14 | desligada (gate: aprovar MCP) |
-| A15 | `pollinations/` | geração de imagem/vídeo/áudio (flux, nanobanana, seedream...) | A44 | stub (aguarda credencial `CRQ-MTGIRCV1`) |
+| A15 | `pollinations/` | geração de imagem/vídeo/áudio (flux, nanobanana, seedream...) | A44 | codigo pronto, aguarda credencial `CRQ-MTGIRCV1` |
 
 ## Regras transversais
 - Integração `desligada` → o agente usa o **fallback nativo** e registra

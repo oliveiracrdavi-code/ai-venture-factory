@@ -1,6 +1,9 @@
 # Roteador de modelo gratuito — camada de fallback (fixado 2026-08-30)
 
-**Status: PENDENTE de ativação.** Este documento define QUEM usaria QUAL
+**Status: CODIGO PRONTO, aguardando chave.** `scripts/model-router.js` e
+`scripts/generate-image.js` implementam tudo abaixo de verdade (testado:
+falha graciosa confirmada sem chave configurada -- nunca trava o agente).
+Este documento define QUEM usaria QUAL
 modelo e com quais parâmetros — mas nenhuma chamada real acontece até a chave
 estar preenchida na aba **Conexões** do dashboard (pedido `CRQ-MTGIKNZF` já
 registrado, aguardando o fundador colar a chave **nova e rotacionada**).

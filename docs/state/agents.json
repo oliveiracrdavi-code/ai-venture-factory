@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T00:49:54.515Z",
+  "generated_at": "2026-08-31T03:35:59.696Z",
   "count": 49,
   "agents": [
     {
@@ -597,9 +597,9 @@
       "status": "idle",
       "task_atual": null,
       "ultima_acao": {
-        "ts": "2026-08-31T00:47:46.218Z",
-        "type": "credential-requested",
-        "summary": "A44 pediu credencial \"GEMINI_API_KEY\" (gerador de imagem alternativo (nativo Google, modelo de imagem multimodal) quand)"
+        "ts": "2026-08-31T03:35:11.989Z",
+        "type": "image-generation-failed",
+        "summary": "GEMINI_API_KEY nao configurada (ver aba Conexoes)"
       }
     },
     {
