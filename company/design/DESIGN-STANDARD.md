@@ -54,10 +54,10 @@ o PDF exige pras 20 telas dele).
 3. Só é considerado "pronto" quando a auditoria fecha com tudo ✓ ou com
    exceções explicitamente justificadas pro fundador.
 
-## Pendente
+## Padrões irmãos
 
-Fundador vai enviar um segundo PDF de referência específico para
-**geração de conteúdo/posts** (BLOCO 8 — A44 content-producer, A45 seo-aso,
-A46 funnel-experimenter, `marketing/outbox`). Quando chegar, mesmo
-tratamento: salvar em `company/design/`, escrever a tradução pro nosso
-contexto, e aplicar como piso mínimo pro material de marketing gerado.
+- **Vídeo de divulgação** (BLOCO 8 — A44/A45/A46): ver
+  `company/design/VIDEO-DESIGN-STANDARD.md` +
+  `company/design/padrao-minimo-video-divulgacao.pdf` (fixado 2026-08-30).
+- Pendente: fundador ainda pode enviar referência de **posts estáticos/imagem**
+  (feed, carrossel) — quando chegar, mesmo tratamento.

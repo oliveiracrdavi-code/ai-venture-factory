@@ -155,3 +155,8 @@ definem o **piso mínimo aceitável** de qualidade visual pra qualquer front-end
 do projeto (dashboard, apps-XXX, landings). Nada abaixo desse nível é
 aceitável. Toda entrega de design/front-end termina com auditoria contra esse
 checklist antes de ser dada como pronta.
+
+`company/design/VIDEO-DESIGN-STANDARD.md` +
+`company/design/padrao-minimo-video-divulgacao.pdf` fazem o mesmo pra vídeo de
+divulgação (BLOCO 8 — A44/A45/A46): piso mínimo obrigatório, checklist na
+última página do PDF, reprovação automática com 3+ itens falhos.
