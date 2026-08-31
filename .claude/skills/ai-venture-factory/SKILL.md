@@ -95,3 +95,8 @@ nichos na fase de pesquisa.
 - `.claude/agents/A01..A49-*.md` — um arquivo por agente.
 - `scripts/` — `activate`, `server`, `orchestrator` (tick), `snapshot`,
   `logger`, `seed-tasks`, `gen-sprites`.
+- `scripts/auto-worker.js` — fallback automatico (xKiro/Pollinations) pra
+  TASK `running` parada ha >15min sem sessao do Claude ativa; nunca marca
+  `done` sozinho, so `review`. Roda a cada tick na VM
+  (`deploy/vm-tick.sh`). Chaves via `company/secrets/` (nunca em chat/log),
+  ver `company/org/como-preencher-credenciais.md`.

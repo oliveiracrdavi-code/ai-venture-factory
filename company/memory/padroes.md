@@ -184,3 +184,15 @@ alguém pedindo imagem pro A44 — ver `company/org/model-router-fallback.md`).
 Isso complementa, não substitui, `company/logs/events.jsonl` (que registra
 AÇÃO/resultado com model/effort, pra auditoria de consumo) — o chat registra
 a CONVERSA entre agentes; o events.jsonl registra o que foi feito.
+
+## Fallback automático de limite (fixado 2026-08-31)
+
+`scripts/auto-worker.js` roda a cada tick da VM (via `deploy/vm-tick.sh`).
+Não existe sinal de "limite do Claude atingido" que um script capte
+diretamente (é a plataforma travando a sessão, não um erro de API) — o proxy
+usado é: **TASK `running` sem nenhum evento novo há mais de 15 minutos**
+(nenhuma sessão do Claude está mexendo nela). Nesse caso, processa via
+xKiro/Pollinations (`scripts/model-router.js` / `scripts/generate-image.js`)
+e deixa um rascunho — **nunca marca `done` sozinho**, sempre `review`. Todo
+pedido/resultado do fallback é registrado no Chat Geral
+(`scripts/agent-chat-post.js`), nunca só no `events.jsonl`.

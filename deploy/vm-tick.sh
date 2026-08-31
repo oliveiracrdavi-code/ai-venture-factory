@@ -16,6 +16,11 @@ git reset --hard -q origin/main 2>/dev/null || git pull --ff-only -q 2>/dev/null
 # 2) avança a fila 1 passo (gera company/state via snapshot embutido)
 "$NODE" "$DIR/scripts/orchestrator.js" tick 2>/dev/null || true
 
+# 2b) fallback automatico: TASK "running" sem nenhuma sessao do Claude
+# mexendo nela ha >15min vira rascunho via xKiro/Pollinations (status=review,
+# nunca "done" sozinho -- ver scripts/auto-worker.js).
+"$NODE" "$DIR/scripts/auto-worker.js" 2>/dev/null || true
+
 # 3) publica o estado para docs/ (+ push se AVF_GIT_PUSH setado no ambiente)
 if [ -n "${AVF_GIT_PUSH:-}" ]; then
   "$NODE" "$DIR/scripts/publish-state.js" --push 2>/dev/null || true
