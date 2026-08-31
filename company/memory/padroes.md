@@ -185,14 +185,29 @@ Isso complementa, não substitui, `company/logs/events.jsonl` (que registra
 AÇÃO/resultado com model/effort, pra auditoria de consumo) — o chat registra
 a CONVERSA entre agentes; o events.jsonl registra o que foi feito.
 
-## Fallback automático de limite (fixado 2026-08-31)
+## Fallback automático de limite (fixado 2026-08-31, corrigido 2026-08-31)
 
-`scripts/auto-worker.js` roda a cada tick da VM (via `deploy/vm-tick.sh`).
-Não existe sinal de "limite do Claude atingido" que um script capte
-diretamente (é a plataforma travando a sessão, não um erro de API) — o proxy
-usado é: **TASK `running` sem nenhum evento novo há mais de 15 minutos**
-(nenhuma sessão do Claude está mexendo nela). Nesse caso, processa via
-xKiro/Pollinations (`scripts/model-router.js` / `scripts/generate-image.js`)
-e deixa um rascunho — **nunca marca `done` sozinho**, sempre `review`. Todo
-pedido/resultado do fallback é registrado no Chat Geral
-(`scripts/agent-chat-post.js`), nunca só no `events.jsonl`.
+`scripts/claude-headless.js` detecta o limite de verdade -- chama `claude -p`
+(modo não-interativo do proprio CLI) e le a saida real. So aciona o fallback
+xKiro quando o texto bate com as assinaturas REAIS que o Claude Code emite ao
+estourar o limite (confirmadas em issues do proprio repo
+`anthropics/claude-code`, não chutadas): "usage limit", "out of extra usage",
+"usage_limit_reached", "limit will reset at". Qualquer OUTRA falha (claude
+nao instalado, rede, OAuth expirado) NAO aciona fallback -- fica so
+registrada, porque o pedido foi "olhar se o limite bateu ou nao", nao
+"qualquer falha".
+
+Não existe hook/API que exponha "quanto do limite ja foi usado" ANTES de
+tentar (confirmado: issue `anthropics/claude-code#38380`, ainda em aberto) --
+por isso a deteccao e' sempre reativa (tenta, le a resposta), nunca
+preditiva. E' assim que sistemas reais como OmniRoute/free-claude-code
+funcionam tambem -- a diferenca e' que eles se colocam como PROXY no meio do
+trafego (Claude Code aponta pra eles em vez de pra Anthropic), enquanto aqui
+a deteccao e' via saida de um `claude -p` headless chamado pelo
+`scripts/auto-worker.js` a cada tick da VM -- nao muda a configuracao de
+rede desta sessao ao vivo.
+
+`scripts/auto-worker.js` roda a cada tick (via `deploy/vm-tick.sh`): pra cada
+TASK `running`, tenta `claude -p` de verdade primeiro; so escala pro xKiro se
+detectar o sinal real de limite. Sempre marca `review` (nunca `done`
+sozinho). Todo pedido/resultado no Chat Geral.
